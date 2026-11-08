@@ -1,7 +1,14 @@
 # 能源开发测试工具箱 · 设计方案
 
-> 版本：v3.6（科技感深色 HUD/霓虹主题 + 新增"日常工具"6 个非新能源工具；macOS 暂 deferred）
-> 日期：2026-11-04（2026-11-05 切换为 Go 壳；2026-11-06 交付 exe；2026-11-07 二次修复重新出包；2026-11-08 两栏布局 + 开发常用；2026-11-08 高压电工；2026-11-08 科技感主题 + 日常工具）
+> 版本：v3.7（科技感深色 HUD/霓虹主题 + 53 工具；新增 Windows PE 图标、官网与 GitHub 发布；macOS 暂 deferred）
+> 日期：2026-11-04（2026-11-05 切换为 Go 壳；2026-11-06 交付 exe；2026-11-07 二次修复重新出包；2026-11-08 两栏布局 + 开发常用 / 高压电工 / 科技感主题 + 日常工具；2026-11-09 图标 + GitHub + 官网）
+>
+> **v3.7（2026-11-09）应用图标、开源仓库与官网**
+> - **Windows PE 图标**：`scripts/make_icon.py`（零依赖纯 Python）生成 16~256 七尺寸 ICO + 512 PNG，图案为深色 HUD 圆角方板 + 青色霓虹描边 + 发光闪电；`assets/app.manifest` 提供 per-monitor-v2 高 DPI 感知；经 `akavel/rsrc` 编为 `rsrc_windows_amd64.syso`，由 Go 链接器自动并入 exe（无 CGo）。`src/index.html` 同步加 favicon。`scripts/verify_icon.py` 校验 PE 资源目录。
+> - **计算器显示强化**：`.calc-display` min-height 92→104px，`.val` 32→38px 且双层青色辉光，解决"结果不醒目"的观感问题。
+> - **GitHub 发布**：公开仓库 `code-outpost/energy-test-toolbox`，`main` 分支；新增 `README.md`、`dist/EnergyTestToolbox.exe`（下载直链）、`.gitignore`。
+> - **官网**：`docs/index.html` 单文件科技感落地页（10 分类 / 53 工具 / 3 张真实截图 / 架构 / 下载），由 `.github/workflows/pages.yml` 部署至 https://code-outpost.github.io/energy-test-toolbox/ 。
+> - 模块计数未变，仍为 **53 个工具 / 10 大分类**；exe 7,806,976 字节。
 > 形态：**原生桌面应用**（Go + WebView2，Windows 已出包；macOS 待补）
 >
 > **v3.6（2026-11-08）科技感视觉重构 + 新增"日常工具"分类（6 个非新能源工具）**
@@ -221,7 +228,7 @@ go mod tidy
 go build -o EnergyToolbox.app/Contents/MacOS/EnergyToolbox .
 ```
 - 无需任何 MSVC / VS / Rust；`npm` 仅用于开发期 Web 预览（`npm run serve` 起一个本地静态服务器看效果），**构建 exe/app 完全不依赖 Node**。
-- 图标：将 `src/assets/` 下放入 `icon.png` 后，可在 `webview_windows.go` 的 `WindowOptions.IconId` 指定资源 ID（进阶），或用第三方工具打包 `.ico`；基础版暂用系统默认图标。
+- 图标：已在 v3.7 落地——`assets/app.ico`（七尺寸）+ `assets/app.manifest` 经 `rsrc` 编为 `rsrc_windows_amd64.syso`，Go 链接器自动嵌入 exe 的 PE 资源；`src/assets/favicon.ico` 随 `//go:embed all:src` 作为窗口页 favicon。重新生成见 `README.md`「重新生成图标」，校验用 `python scripts/verify_icon.py`。
 
 ### 7.3 跨平台 CI 自动构建
 - `.github/workflows/build.yml`（GitHub Actions）：
