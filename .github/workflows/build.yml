@@ -1,0 +1,61 @@
+name: Build Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Build Windows (.exe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Build (pure Go, no MSVC needed)
+        env:
+          CGO_ENABLED: '0'
+          GOOS: windows
+          GOARCH: amd64
+          GOPROXY: https://goproxy.cn,direct
+        run: go build -ldflags "-H windowsgui -s -w" -o EnergyToolbox.exe .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: EnergyToolbox.exe
+
+  macos:
+    name: Build macOS (.app)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Build app bundle
+        env:
+          GOPROXY: https://goproxy.cn,direct
+        run: |
+          mkdir -p EnergyToolbox.app/Contents/MacOS
+          go build -o EnergyToolbox.app/Contents/MacOS/EnergyToolbox .
+          cat > EnergyToolbox.app/Contents/Info.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key><string>能源测试工具箱</string>
+            <key>CFBundleExecutable</key><string>EnergyToolbox</string>
+            <key>CFBundleIdentifier</key><string>com.energytoolbox.app</string>
+            <key>CFBundleVersion</key><string>0.1.0</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict>
+          </plist>
+          EOF
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: EnergyToolbox.app

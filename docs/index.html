@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>能源测试工具箱 — 电力 / 新能源开发测试一站式桌面工具集</title>
+<meta name="description" content="能源测试工具箱：53 个工具、10 大分类的原生桌面工具合集。涵盖计算器、电力计算、高压电工考证公式、IEC 104 / MODBUS 等协议报文解析、开发常用与日常工具。Go + WebView2 单文件 exe，离线可用。" />
+<meta name="keywords" content="能源测试工具箱,电力计算,高压电工,IEC104,MODBUS,协议解析,电工计算器,桌面工具,Go,WebView2" />
+<link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+<link rel="canonical" href="https://code-outpost.github.io/energy-test-toolbox/" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="能源测试工具箱 — 53 个工具，一个 exe" />
+<meta property="og:description" content="面向电力 / 新能源开发测试的一站式桌面工具集，离线可用、免安装。" />
+<meta property="og:image" content="https://code-outpost.github.io/energy-test-toolbox/assets/icon-512.png" />
+<meta name="theme-color" content="#050a16" />
+<style>
+  :root{
+    --bg:#050a16; --bg2:#0a1424; --surface:rgba(16,28,50,.72); --surface2:rgba(22,36,62,.6);
+    --border:rgba(34,211,238,.16); --border2:rgba(124,108,255,.22);
+    --accent:#22d3ee; --accent2:#7c6cff; --text:#e6f0ff; --text2:#93a7c4; --text3:#64789a;
+    --grad:linear-gradient(135deg,#22d3ee 0%,#7c6cff 100%);
+    --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    --shadow:0 18px 60px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .wrap{width:min(1180px,92vw);margin:0 auto}
+  .hero-in>*,.arch>*{min-width:0}
+  .window img,.shot{width:100%;height:auto}
+  .code pre{max-width:100%}
+
+  /* 背景：网格 + 霓虹光晕 */
+  .bg-layer{position:fixed;inset:0;z-index:-2;pointer-events:none;background:
+    radial-gradient(900px 600px at 12% -8%,rgba(34,211,238,.13),transparent 60%),
+    radial-gradient(800px 620px at 92% 4%,rgba(124,108,255,.14),transparent 62%),
+    radial-gradient(700px 600px at 50% 100%,rgba(34,211,238,.06),transparent 65%),
+    var(--bg)}
+  .bg-grid{position:fixed;inset:-60% -10%;z-index:-1;pointer-events:none;opacity:.35;
+    background-image:linear-gradient(rgba(34,211,238,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.055) 1px,transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,#000 20%,transparent 80%);
+    animation:drift 40s linear infinite}
+  @keyframes drift{0%{transform:translate(0,0)}100%{transform:translate(48px,48px)}}
+
+  /* 导航 */
+  .nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px);background:rgba(5,10,22,.78);border-bottom:1px solid var(--border)}
+  .nav-in{display:flex;align-items:center;gap:28px;height:68px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:17px;letter-spacing:.3px;white-space:nowrap}
+  .brand img{width:32px;height:32px;border-radius:9px;box-shadow:0 0 18px rgba(34,211,238,.4)}
+  .nav-links{display:flex;gap:26px;margin-left:auto;font-size:14px;color:var(--text2)}
+  .nav-links a{transition:color .2s}
+  .nav-links a:hover{color:var(--accent)}
+  .nav .btn{padding:9px 18px;font-size:13.5px}
+
+  /* 通用 */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:14px 26px;border-radius:12px;
+    font-size:15px;font-weight:700;border:1px solid transparent;cursor:pointer;transition:transform .18s,box-shadow .2s,background .2s;white-space:nowrap}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:var(--grad);color:#08111f;box-shadow:0 8px 28px rgba(34,211,238,.28)}
+  .btn-primary:hover{box-shadow:0 12px 36px rgba(34,211,238,.45)}
+  .btn-ghost{background:rgba(34,211,238,.06);border-color:var(--border);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent);box-shadow:0 8px 26px rgba(34,211,238,.15)}
+  .tag{display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border:1px solid var(--border);border-radius:999px;
+    background:rgba(34,211,238,.06);color:var(--accent);font-size:12.5px;font-family:var(--mono);letter-spacing:.4px}
+  .tag .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+  .sec{padding:96px 0}
+  .sec-head{text-align:center;margin-bottom:52px}
+  .sec-kicker{font-family:var(--mono);font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+  .sec-head h2{font-size:clamp(27px,3.6vw,40px);margin:0 0 14px;letter-spacing:-.5px}
+  .sec-head p{color:var(--text2);margin:0;font-size:15.5px}
+  .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* Hero */
+  .hero{padding:78px 0 40px}
+  .hero-in{display:grid;grid-template-columns:1fr 1.08fr;gap:56px;align-items:center}
+  .hero h1{font-size:clamp(36px,5vw,58px);line-height:1.16;margin:22px 0 18px;letter-spacing:-1.5px;font-weight:850}
+  .hero .lead{font-size:17px;color:var(--text2);margin:0 0 30px;max-width:520px}
+  .hero .lead b{color:var(--text);font-weight:700}
+  .cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+  .meta-line{font-family:var(--mono);font-size:12.5px;color:var(--text3);display:flex;gap:18px;flex-wrap:wrap}
+  .meta-line span::before{content:"◆";color:var(--accent);margin-right:7px;font-size:9px}
+
+  /* 窗口外壳 */
+  .window{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--bg2);
+    box-shadow:var(--shadow),0 0 60px rgba(34,211,238,.1);transform:perspective(1400px) rotateY(-3deg) rotateX(1deg);
+    transition:transform .5s}
+  .window:hover{transform:perspective(1400px) rotateY(0) rotateX(0)}
+  .win-bar{display:flex;align-items:center;gap:8px;height:42px;padding:0 15px;background:linear-gradient(180deg,#131f38,#0d1729);border-bottom:1px solid var(--border)}
+  .win-bar i{width:11px;height:11px;border-radius:50%;display:block}
+  .win-bar i:nth-child(1){background:#ff6b6b}.win-bar i:nth-child(2){background:#fbbf24}.win-bar i:nth-child(3){background:#34d399}
+  .win-title{margin-left:12px;font-size:12px;color:var(--text3);font-family:var(--mono)}
+  .win-bar .badge{margin-left:auto;font-size:11px;color:var(--accent);font-family:var(--mono);border:1px solid var(--border);padding:2px 9px;border-radius:6px}
+
+  /* 数据条 */
+  .stats{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(10,20,36,.5)}
+  .stats-in{display:grid;grid-template-columns:repeat(4,1fr);padding:36px 0}
+  .stat{text-align:center;border-right:1px solid var(--border)}
+  .stat:last-child{border-right:0}
+  .stat b{display:block;font-family:var(--mono);font-size:34px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat span{font-size:13px;color:var(--text2)}
+
+  /* 分类卡片 */
+  .cats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px}
+  .cat{position:relative;padding:24px 22px;border:1px solid var(--border);border-radius:16px;background:var(--surface);
+    overflow:hidden;transition:transform .22s,border-color .22s,box-shadow .22s}
+  .cat::after{content:"";position:absolute;left:0;top:0;width:26px;height:26px;border-left:2px solid var(--accent);border-top:2px solid var(--accent);border-radius:16px 0 0 0;opacity:.55}
+  .cat:hover{transform:translateY(-5px);border-color:rgba(34,211,238,.5);box-shadow:0 14px 40px rgba(34,211,238,.12)}
+  .cat .ico{font-size:25px;margin-bottom:14px;display:block}
+  .cat h3{margin:0 0 7px;font-size:17px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .cat h3 em{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--accent);
+    background:rgba(34,211,238,.1);border:1px solid var(--border);padding:2px 9px;border-radius:999px}
+  .cat p{margin:0;font-size:13.5px;color:var(--text2);line-height:1.65}
+
+  /* 预览 tabs */
+  .tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
+  .tab{padding:9px 20px;border:1px solid var(--border);border-radius:999px;background:rgba(16,28,50,.6);
+    color:var(--text2);font-size:13.5px;cursor:pointer;transition:.2s}
+  .tab:hover{color:var(--text);border-color:rgba(34,211,238,.45)}
+  .tab.active{background:var(--grad);color:#08111f;border-color:transparent;font-weight:700;box-shadow:0 6px 22px rgba(34,211,238,.25)}
+  .shot-frame{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--bg2);box-shadow:var(--shadow),0 0 50px rgba(34,211,238,.08)}
+  .shot{display:none}
+  .shot.active{display:block}
+  .shot-note{text-align:center;color:var(--text3);font-size:13px;margin-top:18px}
+
+  /* 特性 */
+  .why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .why{padding:28px;border:1px solid var(--border);border-radius:16px;background:var(--surface)}
+  .why .n{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:1px}
+  .why h3{margin:12px 0 9px;font-size:18px}
+  .why p{margin:0;color:var(--text2);font-size:14px}
+  .why .bar{width:38px;height:3px;border-radius:3px;background:var(--grad);margin-top:18px}
+
+  /* 架构 */
+  .arch{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+  .arch-list{display:flex;flex-direction:column;gap:14px}
+  .arch-item{display:flex;gap:16px;padding:18px 20px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+  .arch-item .k{font-family:var(--mono);font-size:12px;color:var(--accent);min-width:96px;padding-top:3px}
+  .arch-item .v{font-size:14px;color:var(--text2)}
+  .arch-item .v b{color:var(--text);display:block;margin-bottom:3px;font-size:15px}
+  .code{background:#08111f;border:1px solid var(--border);border-radius:16px;padding:0;overflow:hidden;box-shadow:var(--shadow)}
+  .code .bar{display:flex;align-items:center;gap:8px;padding:13px 18px;background:#101c32;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--text3)}
+  .code pre{margin:0;padding:22px;font-family:var(--mono);font-size:13px;line-height:1.9;color:#b9d4ee;overflow-x:auto}
+  .code .c{color:#5b7699}.code .g{color:#22d3ee}.code .p{color:#a99bff}.code .s{color:#7ee6a8}
+
+  /* 下载 */
+  .dl-box{position:relative;border:1px solid rgba(34,211,238,.3);border-radius:24px;padding:64px 40px;text-align:center;
+    background:radial-gradient(600px 300px at 50% 0%,rgba(34,211,238,.12),transparent 70%),var(--surface);
+    box-shadow:0 0 80px rgba(34,211,238,.08);overflow:hidden}
+  .dl-box::before,.dl-box::after{content:"";position:absolute;width:80px;height:80px;border:2px solid var(--accent);opacity:.45}
+  .dl-box::before{top:14px;left:14px;border-right:0;border-bottom:0;border-radius:24px 0 0 0}
+  .dl-box::after{bottom:14px;right:14px;border-left:0;border-top:0;border-radius:0 0 24px 0}
+  .dl-box h2{font-size:clamp(26px,3.4vw,38px);margin:0 0 12px}
+  .dl-box p{color:var(--text2);margin:0 0 28px}
+  .dl-box .cta{justify-content:center}
+  .dl-meta{margin-top:26px;font-family:var(--mono);font-size:12.5px;color:var(--text3);display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+
+  /* 页脚 */
+  footer{border-top:1px solid var(--border);padding:44px 0;margin-top:40px}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--text3)}
+  .foot a:hover{color:var(--accent)}
+  .foot-links{display:flex;gap:22px}
+
+  /* 入场动画 */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}
+  .reveal.show{opacity:1;transform:none}
+
+  @media(max-width:940px){
+    .hero-in{grid-template-columns:1fr;gap:44px}
+    .hero{padding-top:52px}
+    .window{transform:none}
+    .arch{grid-template-columns:1fr}
+    .nav-links{display:none}
+    .stats-in{grid-template-columns:repeat(2,1fr);gap:28px 0}
+    .stat:nth-child(2){border-right:0}
+    .sec{padding:70px 0}
+  }
+  @media(max-width:560px){
+    .cta{flex-direction:column;align-items:stretch}
+    .btn{width:100%}
+    .sec-head{margin-bottom:36px}
+    .dl-box{padding:44px 20px}
+    .stat b{font-size:27px}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="bg-layer"></div><div class="bg-grid"></div>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><img src="assets/icon-512.png" alt="logo" /><span>能源测试工具箱</span></a>
+    <nav class="nav-links">
+      <a href="#features">功能</a><a href="#preview">界面</a><a href="#why">特性</a><a href="#tech">架构</a><a href="#download">下载</a>
+    </nav>
+    <a class="btn btn-ghost" href="https://github.com/code-outpost/energy-test-toolbox" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</header>
+
+<main id="top">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap hero-in">
+      <div class="reveal">
+        <span class="tag"><span class="dot"></span> v0.1.0 · 开源免费 · 离线可用</span>
+        <h1>电力与新能源<br /><span class="grad-text">开发测试工具箱</span></h1>
+        <p class="lead">把日常要查的公式、要算的参数、要解的报文，全部收进一个桌面窗口。<b>53 个工具 · 10 大分类</b>，从标准计算器到 IEC 104 / MODBUS 报文解析，从高压电工考证公式到 JSON / 正则，打开即用，无需联网。</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="https://github.com/code-outpost/energy-test-toolbox/raw/main/dist/EnergyTestToolbox.exe">↓ 下载 Windows 版</a>
+          <a class="btn btn-ghost" href="https://github.com/code-outpost/energy-test-toolbox" target="_blank" rel="noopener">查看源码 ↗</a>
+        </div>
+        <div class="meta-line"><span>单文件 exe</span><span>约 7.8 MB</span><span>免安装</span><span>无数据上传</span></div>
+      </div>
+      <div class="reveal">
+        <div class="window">
+          <div class="win-bar"><i></i><i></i><i></i><span class="win-title">能源测试工具箱</span><span class="badge">53 TOOLS</span></div>
+          <img src="assets/screenshot-home.png" alt="能源测试工具箱首页界面：深色主题、左侧分类导航、右侧工具卡片网格" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 数据 -->
+  <section class="stats">
+    <div class="wrap stats-in">
+      <div class="stat reveal"><b>53</b><span>实用工具</span></div>
+      <div class="stat reveal"><b>10</b><span>功能分类</span></div>
+      <div class="stat reveal"><b>1</b><span>单文件 exe</span></div>
+      <div class="stat reveal"><b>0</b><span>联网请求</span></div>
+    </div>
+  </section>
+
+  <!-- 功能分类 -->
+  <section class="sec" id="features">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-kicker">// MODULES</div>
+        <h2>10 大分类，<span class="grad-text">53 个工具</span></h2>
+        <p>按真实工作场景组织，搜索框输入关键词即可直达任意工具。</p>
+      </div>
+      <div class="cats-grid">
+        <div class="cat reveal"><span class="ico">🧮</span><h3>计算器 <em>10</em></h3><p>标准 / 科学 / 程序员计算器，日期、分数、欧姆定律、三相功率、电阻色环、单位换算、表达式计算。</p></div>
+        <div class="cat reveal"><span class="ico">⚡</span><h3>电力计算 <em>5</em></h3><p>功率因数补偿、电缆压降与载流量、光伏阵列设计、蓄电池容量、电费估算。</p></div>
+        <div class="cat reveal"><span class="ico">🛡️</span><h3>高压电工 <em>6</em></h3><p>变压器变比、电动机额定电流、感抗容抗与谐振、安全距离、载流量口诀、考证公式速查卡。</p></div>
+        <div class="cat reveal"><span class="ico">🧩</span><h3>日常工具 <em>6</em></h3><p>通用单位换算、个税计算、房贷月供、BMI 健康、几何计算、随机抽签与掷骰。</p></div>
+        <div class="cat reveal"><span class="ico">🔢</span><h3>通用编解码 <em>5</em></h3><p>进制转换、编码转换、时间戳、字节序互换、校验和 / CRC。</p></div>
+        <div class="cat reveal"><span class="ico">📡</span><h3>协议报文解析 <em>9</em></h3><p>IEC 104 / 101 / 103、MODBUS、GOOSE、SV 采样值、DL/T 645、DNP3、CDT、MMS / MQTT / OPC UA。</p></div>
+        <div class="cat reveal"><span class="ico">🐧</span><h3>Linux 命令 <em>3</em></h3><p>chmod 权限计算器、常用命令速查等运维辅助。</p></div>
+        <div class="cat reveal"><span class="ico">🗄️</span><h3>SQL 辅助 <em>1</em></h3><p>日常 SQL 片段与语句辅助。</p></div>
+        <div class="cat reveal"><span class="ico">🛠️</span><h3>开发常用 <em>6</em></h3><p>JSON 格式化、正则测试、颜色转换、文本处理、Base64 / URL、密码生成。</p></div>
+        <div class="cat reveal"><span class="ico">📦</span><h3>综合工具 <em>2</em></h3><p>跨场景的补充工具类。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 界面预览 -->
+  <section class="sec" id="preview" style="padding-top:24px">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-kicker">// INTERFACE</div>
+        <h2>不翻页的<span class="grad-text">双栏工作台</span></h2>
+        <p>左侧主体操作，右侧面板承载说明、历史与速查，一屏看全。</p>
+      </div>
+      <div class="tabs reveal">
+        <button class="tab active" data-shot="home">工具箱首页</button>
+        <button class="tab" data-shot="calc">标准计算器</button>
+        <button class="tab" data-shot="hv">高压电工公式</button>
+      </div>
+      <div class="shot-frame reveal">
+        <img class="shot active" data-shot="home" src="assets/screenshot-home.png" alt="工具箱首页" />
+        <img class="shot" data-shot="calc" src="assets/screenshot-calc.png" alt="标准计算器界面" />
+        <img class="shot" data-shot="hv" src="assets/screenshot-hv.png" alt="高压电工公式速查卡" />
+      </div>
+      <p class="shot-note">以上为应用真实运行截图 · 深色 HUD 主题，右上角可切换浅色主题</p>
+    </div>
+  </section>
+
+  <!-- 特性 -->
+  <section class="sec" id="why">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-kicker">// WHY</div>
+        <h2>为<span class="grad-text">现场与桌面</span>而设计</h2>
+        <p>不依赖浏览器标签页，不依赖网络，也不把数据发给任何服务器。</p>
+      </div>
+      <div class="why-grid">
+        <div class="why reveal"><div class="n">01</div><h3>完全离线</h3><p>前端资源通过 Go embed 打进二进制，内置 127.0.0.1 本地服务供 WebView 加载，运行时零外网请求。</p><div class="bar"></div></div>
+        <div class="why reveal"><div class="n">02</div><h3>绿色单文件</h3><p>一个 exe 即可运行，免安装、无注册表写入；WebView2Loader.dll 已内嵌，拷贝带走即用。</p><div class="bar"></div></div>
+        <div class="why reveal"><div class="n">03</div><h3>双栏不翻页</h3><p>固定高度网格布局，整页不纵向滚动；长内容拆到右侧面板，窄窗口自动折叠为单列。</p><div class="bar"></div></div>
+        <div class="why reveal"><div class="n">04</div><h3>全局搜索</h3><p>顶栏搜索框按名称、描述、关键词实时过滤，输入「进制」「104」「计算」即可定位工具。</p><div class="bar"></div></div>
+        <div class="why reveal"><div class="n">05</div><h3>主题与字号</h3><p>深色科技感主题为默认，可一键切换浅色；计算器显示屏高对比设计，结果清晰可读。</p><div class="bar"></div></div>
+        <div class="why reveal"><div class="n">06</div><h3>声明式模块</h3><p>每个工具是一个独立注册单元，新增功能只需注册并引入脚本，易于扩展与维护。</p><div class="bar"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 架构 -->
+  <section class="sec" id="tech">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-kicker">// ARCHITECTURE</div>
+        <h2>纯 Go 壳 + <span class="grad-text">嵌入式前端</span></h2>
+        <p>无需 MSVC / CGo，一条命令即可交叉编译出 Windows 可执行文件。</p>
+      </div>
+      <div class="arch">
+        <div class="arch-list">
+          <div class="arch-item reveal"><div class="k">SHELL</div><div class="v"><b>Go + WebView2</b>使用 go-webview2 创建原生窗口，纯 Go 实现，无 CGo 依赖。</div></div>
+          <div class="arch-item reveal"><div class="k">EMBED</div><div class="v"><b>go:embed all:src</b>HTML / CSS / JS / 图标整体打入二进制，分发即单文件。</div></div>
+          <div class="arch-item reveal"><div class="k">UI</div><div class="v"><b>声明式模块注册表</b>路由按 id 动态渲染，53 个模块彼此独立、互不干扰。</div></div>
+          <div class="arch-item reveal"><div class="k">BUILD</div><div class="v"><b>单命令构建</b>CGO_ENABLED=0，ldflags 去符号，产物约 7.8 MB。</div></div>
+          <div class="arch-item reveal"><div class="k">TEST</div><div class="v"><b>三重自动化验证</b>模块注册渲染、交互逻辑、应用启动路径均有 Node 测试覆盖。</div></div>
+        </div>
+        <div class="code reveal">
+          <div class="bar"><span>●</span><span>●</span><span>●</span>&nbsp; build.sh</div>
+<pre><span class="c"># 一条命令构建 Windows 桌面应用</span>
+<span class="g">CGO_ENABLED</span>=0 <span class="g">GOOS</span>=windows <span class="g">GOARCH</span>=amd64 \
+  go build -ldflags <span class="s">"-H windowsgui -s -w"</span> \
+  -o <span class="p">EnergyTestToolbox.exe</span> .
+
+<span class="c"># 前端资源自动嵌入，无需额外文件</span>
+<span class="c">//go:embed all:src</span>
+var assets embed.FS
+
+<span class="c"># 模块按注册表动态渲染</span>
+TB.register({
+  <span class="p">id</span>: <span class="s">'standard'</span>,
+  <span class="p">name</span>: <span class="s">'标准计算器'</span>,
+  <span class="p">category</span>: <span class="s">'计算器'</span>,
+  <span class="p">render</span>(body, { aside }) { <span class="c">/* ... */</span> }
+});</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 下载 -->
+  <section class="sec" id="download">
+    <div class="wrap">
+      <div class="dl-box reveal">
+        <h2>准备好把 53 个工具<span class="grad-text">装进桌面</span>了吗？</h2>
+        <p>下载后直接双击运行，无需安装、无需联网、无需额外依赖。</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="https://github.com/code-outpost/energy-test-toolbox/raw/main/dist/EnergyTestToolbox.exe">↓ 下载 Windows 版 (.exe)</a>
+          <a class="btn btn-ghost" href="https://github.com/code-outpost/energy-test-toolbox/releases" target="_blank" rel="noopener">查看 Releases ↗</a>
+        </div>
+        <div class="dl-meta"><span>Windows 10 / 11</span><span>需 Edge WebView2 运行时（系统通常自带）</span><span>约 7.8 MB</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>© <span id="year">2026</span> code-outpost · 能源测试工具箱 · 开源项目</span>
+    <div class="foot-links">
+      <a href="https://github.com/code-outpost/energy-test-toolbox" target="_blank" rel="noopener">源码仓库</a>
+      <a href="https://github.com/code-outpost/energy-test-toolbox/issues" target="_blank" rel="noopener">问题反馈</a>
+      <a href="https://github.com/code-outpost" target="_blank" rel="noopener">GitHub 主页</a>
+      <a href="#top">回到顶部 ↑</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // 截图切换
+  document.querySelectorAll('.tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.dataset.shot;
+      document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      document.querySelectorAll('.shot').forEach(function (s) { s.classList.toggle('active', s.dataset.shot === key); });
+    });
+  });
+  // 滚动淡入
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (list) {
+      list.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('show'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(function (el, i) {
+      el.style.transitionDelay = (Math.min(i % 4, 3) * 70) + 'ms';
+      io.observe(el);
+    });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('show'); });
+  }
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

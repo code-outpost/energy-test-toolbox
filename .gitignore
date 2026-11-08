@@ -1,0 +1,21 @@
+# 本地工具链与缓存（体积大，不入库）
+.buildcache/
+.workbuddy/
+
+# 临时文件 / 本机产物
+_*.png
+_*.html
+*.log
+node_modules/
+*.tmp
+
+# CI 构建产物（由 Actions 生成，不入库）
+EnergyToolbox.exe
+EnergyToolbox.app/
+
+# 说明：以下文件需要入库
+#   能源测试工具箱.exe          根目录中文名成品
+#   dist/EnergyTestToolbox.exe 官网下载直链用（ASCII 名）
+#   assets/app.ico, app.manifest
+#   rsrc_windows_amd64.syso    Windows PE 图标资源（CI 构建也需要）
+#   docs/                      官网静态站

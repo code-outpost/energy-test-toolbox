@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>能源测试工具箱</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body data-theme="dark">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">⚡</span>
+      <span>能源测试工具箱</span>
+    </div>
+    <div class="top-actions">
+      <input id="globalSearch" class="search" type="search" placeholder="搜索工具（如 进制、104、计算）..." />
+      <button id="themeToggle" class="top-btn" title="切换亮/暗主题">🌓 主题</button>
+    </div>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar"></nav>
+    <main id="content" class="content"></main>
+  </div>
+  <div id="statusbar" class="statusbar"></div>
+
+  <!-- 模块注册表与共享工具 -->
+  <script src="utils/modules.js"></script>
+  <!-- 计算器共享引擎 -->
+  <script src="modules/calculator/engine.js"></script>
+  <!-- 计算器套件 -->
+  <script src="modules/calculator/standard.js"></script>
+  <script src="modules/calculator/scientific.js"></script>
+  <script src="modules/calculator/programmer.js"></script>
+  <!-- 电力 / 新能源计算 -->
+  <script src="modules/calculator/power-factor.js"></script>
+  <script src="modules/calculator/cable-drop.js"></script>
+  <script src="modules/calculator/pv-array.js"></script>
+  <script src="modules/calculator/battery.js"></script>
+  <script src="modules/calculator/elec-cost.js"></script>
+  <!-- 通用计算 -->
+  <script src="modules/calculator/datecalc.js"></script>
+  <script src="modules/calculator/fraction.js"></script>
+
+  <!-- 高压电工（考证常用） -->
+  <script src="modules/hv/hv-transformer.js"></script>
+  <script src="modules/hv/hv-motor.js"></script>
+  <script src="modules/hv/hv-reactance.js"></script>
+  <script src="modules/hv/hv-safety.js"></script>
+  <script src="modules/hv/hv-ampacity.js"></script>
+  <script src="modules/hv/hv-cheatsheet.js"></script>
+  <!-- 电力 / 能源计算器（旧） -->
+  <script src="modules/calculator/ohm.js"></script>
+  <script src="modules/calculator/threephase.js"></script>
+  <script src="modules/calculator/resistor.js"></script>
+  <script src="modules/calculator/unitconv.js"></script>
+  <!-- 通用编解码 -->
+  <script src="modules/encoding/base-convert.js"></script>
+  <script src="modules/encoding/encoding.js"></script>
+  <script src="modules/encoding/timestamp.js"></script>
+  <script src="modules/encoding/endian.js"></script>
+  <script src="modules/encoding/checksum.js"></script>
+  <!-- Linux 命令 -->
+  <script src="modules/linux/chmod.js"></script>
+  <script src="modules/linux/cmd-ref.js"></script>
+  <script src="modules/linux/cmd-parse.js"></script>
+  <!-- 协议报文解析 -->
+  <script src="modules/protocol/iec104.js"></script>
+  <script src="modules/protocol/modbus.js"></script>
+  <script src="modules/protocol/goose.js"></script>
+  <script src="modules/protocol/sv.js"></script>
+  <script src="modules/protocol/dlt645.js"></script>
+  <script src="modules/protocol/dnp3.js"></script>
+  <script src="modules/protocol/iec101103.js"></script>
+  <script src="modules/protocol/cdt.js"></script>
+  <script src="modules/protocol/mms-mqtt-opcua.js"></script>
+    <!-- SQL 辅助 -->
+    <script src="modules/sql/sql.js"></script>
+  <!-- 开发常用 -->
+  <script src="modules/dev/json-tool.js"></script>
+  <script src="modules/dev/regex-tester.js"></script>
+  <script src="modules/dev/color-convert.js"></script>
+  <script src="modules/dev/text-tool.js"></script>
+  <script src="modules/dev/base64-url.js"></script>
+  <script src="modules/dev/passgen.js"></script>
+  <!-- 日常工具（非新能源 · 通用） -->
+  <script src="modules/daily/unit-converter.js"></script>
+  <script src="modules/daily/income-tax.js"></script>
+  <script src="modules/daily/mortgage.js"></script>
+  <script src="modules/daily/bmi.js"></script>
+  <script src="modules/daily/geometry.js"></script>
+  <script src="modules/daily/random.js"></script>
+    <!-- 综合工具 -->
+  <script src="modules/misc/hex-diff.js"></script>
+  <script src="modules/misc/hex-dump.js"></script>
+  <script src="modules/misc/calc.js"></script>
+  <!-- 应用入口（最后加载，渲染导航与仪表盘） -->
+  <script src="app.js"></script>
+</body>
+</html>
