@@ -12,10 +12,10 @@
 
 | 项目 | 说明 |
 | --- | --- |
-| 直接下载 | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe)（仓库 `dist/` 目录，双击即可） |
-| 成品文件 | 仓库根目录 `能源测试工具箱.exe`（与 `dist/` 内为同一产物，仅文件名不同） |
+| 直接下载 | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe)（GitHub Release 附件，双击即可） |
+| 成品文件 | 仓库根目录 `能源测试工具箱.exe`，`dist/EnergyTestToolbox.exe` 为其同步镜像；两者与 Release 附件的 SHA256 完全一致 |
 | 系统要求 | Windows 10 / 11，需 Microsoft Edge WebView2 运行时（系统通常已自带） |
-| 安装 | 免安装、绿色单文件，约 7.8 MB，无需额外 DLL |
+| 安装 | 免安装、绿色单文件，约 7.9 MB，无需额外 DLL |
 | 联网 | 运行时零外网请求，所有前端资源已嵌入二进制 |
 
 WebView2Loader.dll 已内嵌；若窗口无法打开，请安装 [WebView2 运行时](https://developer.microsoft.com/microsoft-edge/webview2/)。
@@ -92,7 +92,7 @@ python scripts/verify_icon.py              # 校验 exe 的 PE 资源目录含�
 │   ├── index.html
 │   └── assets/                图标与 3 张真实应用截图
 ├── scripts/                   构建与测试脚本
-├── dist/                      官网下载直链用 exe
+├── dist/                      Release 产物同步镜像 exe（CI 自动回写）
 └── .github/workflows/         构建 + Pages 部署流水线
 ```
 

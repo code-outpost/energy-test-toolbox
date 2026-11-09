@@ -12,7 +12,7 @@
 > - **个性化**：收藏置顶、最近使用、快捷键（`/`、`Ctrl+K`、`Esc`）、aria 标签；顶栏版本号与检查更新按钮。
 > - **分类补齐**：新增 `device-bridge`、`batch-calc`、`sql-format`、`sql-ddl`、`crontab`，模块总数 **53 → 58**（10 分类不变，最少分类由 1 提升到 3）。
 > - **质量**：`check-syntax.mjs`（逐文件语法编译 + `T.util.*` 命名空间误用静态防线，防 app.js 白屏）、`test.formulas.mjs`（42 条数值 golden + refs 元数据）、`check-docs.mjs`（跨文档计数一致性）、`verify_syso.py`（CI 无 exe 时校验 PE 资源对象）、`check-light-theme.mjs`（真实 Chromium 在 dark/light 下逐模块 render + WCAG 对比度检测）、`test.boot.mjs` 改为从 `index.html` 自动解析脚本列表。顺带修复 `dlt645` / `sql` 的 `T.util.copyBtn` 误用、`endian` 的 DataView 方法名错误、浅色主题 `.hint` 低对比（2.75→5.9）。
-> - **验证**：58/58 模块注册渲染、20/20 交互、42/42 数值、boot 0 失败、语法 62 文件 0 失败、双主题浏览器探针 58×2 全通过；Go 单文件 exe **8,164,352 字节**（含图标资源），SHA256 随 Release 发布。
+> - **验证**：58/58 模块注册渲染、20/20 交互、42/42 数值、boot 0 失败、语法 62 文件 0 失败、双主题浏览器探针 58×2 全通过；Go 单文件 exe **7,933,440 字节**（含图标资源），SHA256 随 Release 发布。
 >
 > **v3.7（2026-11-09）应用图标、开源仓库与官网**
 > - **Windows PE 图标**：`scripts/make_icon.py`（零依赖纯 Python）生成 16~256 七尺寸 ICO + 512 PNG，图案为深色 HUD 圆角方板 + 青色霓虹描边 + 发光闪电；`assets/app.manifest` 提供 per-monitor-v2 高 DPI 感知；经 `akavel/rsrc` 编为 `rsrc_windows_amd64.syso`，由 Go 链接器自动并入 exe（无 CGo）。`src/index.html` 同步加 favicon。`scripts/verify_icon.py` 校验 PE 资源目录。
