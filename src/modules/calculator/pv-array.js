@@ -4,6 +4,7 @@
   TB.register({
     id: 'pv-array', name: '光伏阵列设计', category: '电力计算',
     desc: '输入组件参数与串/并联数，校验组串电压是否超过逆变器上限，估算日/月/年发电量。',
+    refs: ["组串工作电压需落在逆变器 MPPT 范围内，开路电压按组件温度系数修正","Ns·Voc(低温) < 逆变器最大直流电压；Np·Isc 需满足直流侧载流能力","组件参数以厂商规格书为准，设计鉴定标准参考 IEC 61215 / IEC 61730"],
     render(c) {
       function fld(label, val, unit) {
         const inp = T.el('input', { type: 'number', value: val, step: 'any' });

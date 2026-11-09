@@ -5,6 +5,7 @@
   TB.register({
     id: 'ohm', name: '欧姆定律', category: '计算器',
     desc: '已知电压/电流/电阻/功率中任意两项，自动求解其余两项（V=IR，P=VI=V²/R=I²R）。',
+    refs: ["欧姆定律 I = U/R；功率 P = U·I = I²R = U²/R","适用于线性电阻元件；交流含电抗时应改用阻抗 Z 与功率因数"],
     render(c) {
       const fields = {};
       const defs = [

@@ -49,8 +49,10 @@ TB.register({
         else {
           const signed = t.startsWith('int');
           const bits = parseInt(t.replace(/[a-z]/g, ''), 10);
-          be = signed ? dv.getInt(bits, 0, false) : dv.getUint(bits, 0, false);
-          le = signed ? dv.getInt(bits, 0, true) : dv.getUint(bits, 0, true);
+          const method = (signed ? 'getInt' : 'getUint') + bits;
+          if (typeof dv[method] !== 'function') throw new Error('不支持的整数类型: ' + t);
+          be = dv[method](0, false);
+          le = dv[method](0, true);
         }
         put('大端 BE 解释', String(be));
         put('小端 LE 解释', String(le));

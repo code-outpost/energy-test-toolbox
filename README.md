@@ -1,8 +1,8 @@
 # ⚡ 能源测试工具箱
 
-> 面向电力 / 新能源开发测试的一站式桌面工具集 —— **53 个工具 · 10 大分类 · 单文件 exe · 完全离线**
+> 面向电力 / 新能源开发测试的一站式桌面工具集 —— **58 个工具 · 10 大分类 · 单文件 exe · 完全离线**
 
-[官网](https://code-outpost.github.io/energy-test-toolbox/) · [下载 Windows 版](https://github.com/code-outpost/energy-test-toolbox/raw/main/dist/EnergyTestToolbox.exe) · [Releases](https://github.com/code-outpost/energy-test-toolbox/releases) · [问题反馈](https://github.com/code-outpost/energy-test-toolbox/issues)
+[官网](https://code-outpost.github.io/energy-test-toolbox/) · [下载 Windows 版](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe) · [Releases](https://github.com/code-outpost/energy-test-toolbox/releases) · [问题反馈](https://github.com/code-outpost/energy-test-toolbox/issues)
 
 把日常要查的公式、要算的参数、要解的报文，全部收进一个桌面窗口。从标准计算器到 IEC 104 / MODBUS 报文解析，从高压电工考证公式到 JSON / 正则，打开即用。
 
@@ -12,7 +12,7 @@
 
 | 项目 | 说明 |
 | --- | --- |
-| 直接下载 | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/raw/main/dist/EnergyTestToolbox.exe)（仓库 `dist/` 目录，双击即可） |
+| 直接下载 | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe)（仓库 `dist/` 目录，双击即可） |
 | 成品文件 | 仓库根目录 `能源测试工具箱.exe`（与 `dist/` 内为同一产物，仅文件名不同） |
 | 系统要求 | Windows 10 / 11，需 Microsoft Edge WebView2 运行时（系统通常已自带） |
 | 安装 | 免安装、绿色单文件，约 7.8 MB，无需额外 DLL |
@@ -22,7 +22,7 @@ WebView2Loader.dll 已内嵌；若窗口无法打开，请安装 [WebView2 运�
 
 ---
 
-## 功能一览（53 个工具 / 10 大分类）
+## 功能一览（58 个工具 / 10 大分类）
 
 | 分类 | 工具数 | 代表功能 |
 | --- | ---: | --- |
@@ -87,7 +87,7 @@ python scripts/verify_icon.py              # 校验 exe 的 PE 资源目录含�
 │   ├── app.js                 路由、分类渲染、主题、搜索
 │   ├── assets/css/style.css   深色 HUD / 霓虹主题（v5）
 │   ├── utils/modules.js       声明式模块注册表
-│   └── modules/               53 个工具模块（按分类分目录）
+│   └── modules/               58 个工具模块（按分类分目录）
 ├── docs/                      官网静态站（GitHub Pages 发布）
 │   ├── index.html
 │   └── assets/                图标与 3 张真实应用截图
@@ -104,12 +104,18 @@ python scripts/verify_icon.py              # 校验 exe 的 PE 资源目录含�
 
 | 脚本 | 作用 | 当前结果 |
 | --- | --- | --- |
-| `node scripts/verify.mjs` | 全模块注册 + 渲染 | 53 / 53 通过 |
+| `node scripts/verify.mjs` | 全模块注册 + 渲染 | 58 / 58 通过 |
 | `node scripts/test.interact.mjs` | 模拟点击 / 输入的交互逻辑 | 20 / 20 通过 |
 | `node scripts/test.boot.mjs` | 按 index.html 顺序加载**含 app.js** 的全部脚本，验证应用启动渲染 | 0 失败 |
+| `node scripts/test.formulas.mjs` | 计算类模块的数值标准答案（golden case） | 42 / 42 通过 |
+| `node scripts/check-syntax.mjs` | 全脚本语法 + `T.util.*` 命名空间误用静态防线 | 0 失败 |
+| `node scripts/check-docs.mjs` | 模块计数 / 版本号 / 脚本引入的跨文档一致性 | 通过 |
+| `node scripts/check-light-theme.mjs` | 真实 Chromium 逐模块渲染 dark + light，检测文字对比度 | 58×2 全通过 |
+| `python scripts/verify_syso.py` | 校验已提交的 PE 资源对象（CI 无 exe 时用） | 通过 |
 | `python scripts/verify_icon.py` | 校验 exe 的 PE 资源含 RT_ICON / RT_GROUP_ICON / RT_MANIFEST | 通过 |
 
 > ⚠️ 任何 `app.js` 改动都必须先跑 `test.boot.mjs`；历史曾因测试未覆盖 app.js 而漏掉入口级语法错误。
+> `check-light-theme.mjs` 在真实浏览器里逐个调用模块 `render()`，能抓到 DOM 桩测漏掉的 `T.util.copyBtn` 一类错误；未安装 Chrome 时自动跳过。
 
 ---
 
@@ -131,12 +137,15 @@ python scripts/verify_icon.py              # 校验 exe 的 PE 资源目录含�
 | 资源嵌入 | `go:embed all:src` + 内置 127.0.0.1 HTTP 服务 |
 | 前端 | 原生 HTML / CSS / JS，声明式模块注册，hash 路由 |
 | 图标 | Python 生成多尺寸 ICO → rsrc 编译为 PE 资源 |
-| CI | GitHub Actions（Windows / macOS 构建 + Pages 部署） |
+| CI | GitHub Actions（Ubuntu 全量测试 + Windows 构建/发布 + Pages 部署） |
 
 ---
 
 ## 说明
 
-- macOS 版本（`webview` / CGo）暂缓，当前交付以 Windows 为主。
-- 设计文档见 [`design.md`](design.md)，与本文档的模块计数保持一致（53 个工具 / 10 个分类）。
+- macOS 版本（`webview` / CGo）暂缓，当前交付以 Windows 为主；唯一 WebView 入口带 `//go:build windows`，CI 只构建 Windows。
+- 设计文档见 [`design.md`](design.md)，与本文档的模块计数保持一致（58 个工具 / 10 个分类）。
 - 所有计算均在本地完成，不上传任何输入数据。
+- 版本号以 [`src/version.js`](src/version.js) 为唯一来源（当前 `v0.1.0`），应用内「⟳ 更新」可检查 GitHub 最新版本。
+- 每次 Release 附带 `SHA256SUMS.txt`，下载后建议核对哈希；未签名 exe 首次运行可能触发 Windows SmartScreen 提示。
+- 许可证：[MIT](LICENSE) · 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md) · 更新日志：[CHANGELOG.md](CHANGELOG.md) · 问题反馈：[Issues](https://github.com/code-outpost/energy-test-toolbox/issues)

@@ -47,66 +47,15 @@ global.document = {
 };
 global.MutationObserver = class { observe(){} disconnect(){} };
 
-// ---- 加载顺序：与 index.html 完全一致 ----
+// ---- 加载顺序：直接从 index.html 解析，新增模块自动纳入，绝不漏测入口 ----
 const root = process.cwd();
-const scripts = [
-  'src/utils/modules.js',
-  'src/modules/calculator/engine.js',
-  'src/modules/calculator/standard.js',
-  'src/modules/calculator/scientific.js',
-  'src/modules/calculator/programmer.js',
-  'src/modules/calculator/power-factor.js',
-  'src/modules/calculator/cable-drop.js',
-  'src/modules/calculator/pv-array.js',
-  'src/modules/calculator/battery.js',
-  'src/modules/calculator/elec-cost.js',
-  'src/modules/calculator/datecalc.js',
-  'src/modules/calculator/fraction.js',
-  'src/modules/hv/hv-transformer.js',
-  'src/modules/hv/hv-motor.js',
-  'src/modules/hv/hv-reactance.js',
-  'src/modules/hv/hv-safety.js',
-  'src/modules/hv/hv-ampacity.js',
-  'src/modules/hv/hv-cheatsheet.js',
-  'src/modules/calculator/ohm.js',
-  'src/modules/calculator/threephase.js',
-  'src/modules/calculator/resistor.js',
-  'src/modules/calculator/unitconv.js',
-  'src/modules/encoding/base-convert.js',
-  'src/modules/encoding/encoding.js',
-  'src/modules/encoding/timestamp.js',
-  'src/modules/encoding/endian.js',
-  'src/modules/encoding/checksum.js',
-  'src/modules/linux/chmod.js',
-  'src/modules/linux/cmd-ref.js',
-  'src/modules/linux/cmd-parse.js',
-  'src/modules/protocol/iec104.js',
-  'src/modules/protocol/modbus.js',
-  'src/modules/protocol/goose.js',
-  'src/modules/protocol/sv.js',
-  'src/modules/protocol/dlt645.js',
-  'src/modules/protocol/dnp3.js',
-  'src/modules/protocol/iec101103.js',
-  'src/modules/protocol/cdt.js',
-  'src/modules/protocol/mms-mqtt-opcua.js',
-  'src/modules/sql/sql.js',
-  'src/modules/dev/json-tool.js',
-  'src/modules/dev/regex-tester.js',
-  'src/modules/dev/color-convert.js',
-  'src/modules/dev/text-tool.js',
-  'src/modules/dev/base64-url.js',
-  'src/modules/dev/passgen.js',
-  'src/modules/daily/unit-converter.js',
-  'src/modules/daily/income-tax.js',
-  'src/modules/daily/mortgage.js',
-  'src/modules/daily/bmi.js',
-  'src/modules/daily/geometry.js',
-  'src/modules/daily/random.js',
-  'src/modules/misc/hex-diff.js',
-  'src/modules/misc/hex-dump.js',
-  'src/modules/misc/calc.js',
-  'src/app.js'
-];
+const html = fs.readFileSync(path.join(root, 'src/index.html'), 'utf8');
+const scripts = Array.from(html.matchAll(/<script\s+src="([^"]+)"/g), m => 'src/' + m[1]);
+console.log('从 index.html 解析到脚本数:', scripts.length);
+if (scripts[scripts.length - 1] !== 'src/app.js') {
+  console.log('✗ app.js 必须是最后一个脚本');
+  process.exit(1);
+}
 
 let loadErr = 0;
 for (const f of scripts) {

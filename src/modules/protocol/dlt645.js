@@ -82,7 +82,7 @@
         const enc = data.map(b => (b + 0x33) & 0xff);
         const frame = build(addr, ctrl, enc);
         bout.appendChild(T.el('div', { class: 'kv' })); const k = bout.lastChild;
-        k.appendChild(T.el('div', { class: 'k', text: '完整帧' })); k.appendChild(T.el('div', { class: 'v' }, [hx(frame), T.util.copyBtn(hx(frame))]));
+        k.appendChild(T.el('div', { class: 'k', text: '完整帧' })); k.appendChild(T.el('div', { class: 'v' }, [hx(frame), T.copyBtn(hx(frame))]));
         k.appendChild(T.el('div', { class: 'k', text: '数据域(+0x33)' })); k.appendChild(T.el('div', { class: 'v', text: hx(enc) }));
       }
       aIn.addEventListener('input', doBuild); cIn.addEventListener('input', doBuild); dIn.addEventListener('input', doBuild);

@@ -1,7 +1,18 @@
 # 能源开发测试工具箱 · 设计方案
 
-> 版本：v3.7（科技感深色 HUD/霓虹主题 + 53 工具；新增 Windows PE 图标、官网与 GitHub 发布；macOS 暂 deferred）
+> 版本：v3.8（v0.1.0 正式发布：设备联调、批量报表、公式依据、个性化、CI/Release 发布链路；58 工具 / 10 分类；macOS 暂 deferred）
 > 日期：2026-11-04（2026-11-05 切换为 Go 壳；2026-11-06 交付 exe；2026-11-07 二次修复重新出包；2026-11-08 两栏布局 + 开发常用 / 高压电工 / 科技感主题 + 日常工具；2026-11-09 图标 + GitHub + 官网）
+>
+> **v3.8（2026-11-09）v0.1.0 正式发布**
+> - **发布链路**：重写 `.github/workflows/build.yml`，移除在 macOS 上必然失败的 job（唯一入口 `webview_windows.go` 带 `//go:build windows`）；Windows job 串起「rsrc → build → 全套测试 → SHA256 → Release」，产物名统一为 `EnergyTestToolbox.exe`，官网下载改指 `releases/latest`。补 `LICENSE`(MIT)、`CHANGELOG.md`、`CONTRIBUTING.md`、Issue 模板。
+> - **版本体系**：`src/version.js` 为唯一事实来源，应用内顶栏显示版本 + 一键检查更新；Go 端从嵌入的 `version.js` 解析版本并写入窗口标题；`/api/device/ping` 返回版本。
+> - **设备联调**：新增 `api_device.go`（仅 127.0.0.1）提供 Modbus TCP / 裸 TCP / 串口 RTU / 串口枚举 API（依赖纯 Go `go.bug.st/serial v1.8.0`，go.mod 升至 1.25.0）；前端 `modules/protocol/device-bridge.js` 含报文模板、自动 CRC16、响应解析与收发日志，纯前端环境自动降级为离线构造。
+> - **批量报表**：`modules/misc/batch-calc.js`，7 个工程公式模板 + CSV 粘贴/导入 → 批量计算 → 结果表格 → 导出 CSV 报告。
+> - **公式依据**：注册表新增 `refs` 字段，`buildAside` 统一渲染「公式依据与标准」卡片，覆盖 11 个电力计算/高压电工模块 + 2 个电工计算器。
+> - **个性化**：收藏置顶、最近使用、快捷键（`/`、`Ctrl+K`、`Esc`）、aria 标签；顶栏版本号与检查更新按钮。
+> - **分类补齐**：新增 `device-bridge`、`batch-calc`、`sql-format`、`sql-ddl`、`crontab`，模块总数 **53 → 58**（10 分类不变，最少分类由 1 提升到 3）。
+> - **质量**：`check-syntax.mjs`（逐文件语法编译 + `T.util.*` 命名空间误用静态防线，防 app.js 白屏）、`test.formulas.mjs`（42 条数值 golden + refs 元数据）、`check-docs.mjs`（跨文档计数一致性）、`verify_syso.py`（CI 无 exe 时校验 PE 资源对象）、`check-light-theme.mjs`（真实 Chromium 在 dark/light 下逐模块 render + WCAG 对比度检测）、`test.boot.mjs` 改为从 `index.html` 自动解析脚本列表。顺带修复 `dlt645` / `sql` 的 `T.util.copyBtn` 误用、`endian` 的 DataView 方法名错误、浅色主题 `.hint` 低对比（2.75→5.9）。
+> - **验证**：58/58 模块注册渲染、20/20 交互、42/42 数值、boot 0 失败、语法 62 文件 0 失败、双主题浏览器探针 58×2 全通过；Go 单文件 exe **8,164,352 字节**（含图标资源），SHA256 随 Release 发布。
 >
 > **v3.7（2026-11-09）应用图标、开源仓库与官网**
 > - **Windows PE 图标**：`scripts/make_icon.py`（零依赖纯 Python）生成 16~256 七尺寸 ICO + 512 PNG，图案为深色 HUD 圆角方板 + 青色霓虹描边 + 发光闪电；`assets/app.manifest` 提供 per-monitor-v2 高 DPI 感知；经 `akavel/rsrc` 编为 `rsrc_windows_amd64.syso`，由 Go 链接器自动并入 exe（无 CGo）。`src/index.html` 同步加 favicon。`scripts/verify_icon.py` 校验 PE 资源目录。
@@ -194,7 +205,7 @@ D:/小工具/
 - **M4（已完成·代码）** SQL 工具组：格式化 / 大小写转换 / 表名·字段提取 / 语法检查（多方言）
 - **M5（基本完成·代码）** 扩展协议已实现（DNP3 / IEC101-103 / CDT / MMS·MQTT·OPC UA 轻量结构解码）；综合工具已完成（HEX 字节级 diff、Hex dump、安全表达式计算）；报告导出（CSV）与最终打包打磨待收尾
 
-> 当前共 **53 个工具模块**（计算器 10 + 电力计算 5 + 高压电工 6 + 日常工具 6 + 开发常用 6 + 通用编解码 5 + 协议报文解析 9 + Linux 命令 3 + SQL 辅助 1 + 综合工具 2）。所有模块均通过 `scripts/verify.mjs`（DOM 桩）冒烟验证：注册成功且默认样本走通解析渲染。
+> 当前共 **58 个工具模块**（计算器 10 + 协议报文解析 10 + 高压电工 6 + 日常工具 6 + 开发常用 6 + 电力计算 5 + 通用编解码 5 + Linux 命令 4 + SQL 辅助 3 + 综合工具 3）。所有模块均通过 `scripts/verify.mjs`（DOM 桩）冒烟验证：注册成功且默认样本走通解析渲染；计算类另由 `scripts/test.formulas.mjs` 校验标准答案。
 
 ---
 

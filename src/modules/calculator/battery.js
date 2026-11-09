@@ -4,6 +4,7 @@
   TB.register({
     id: 'battery', name: '蓄电池容量', category: '电力计算',
     desc: '输入负载功率、后备时间与系统电压，计算所需电池能量(Ah/Wh)、放电深度与电池串并联数量。',
+    refs: ["储能容量 C(Ah) = P·t / (U·DoD·η)，其中 DoD 为放电深度、η 为系统效率","本工具为通用工程估算，未计入温度衰减、寿命末期容量与逆变器效率曲线","DoD 与循环寿命取值应以电池厂商规格书为准"],
     render(c) {
       function fld(label, val, unit) {
         const inp = T.el('input', { type: 'number', value: val, step: 'any' });

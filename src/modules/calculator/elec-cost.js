@@ -4,6 +4,7 @@
   TB.register({
     id: 'elec-cost', name: '电费估算', category: '电力计算',
     desc: '按月用电量估算电费，支持单一电价、峰谷电价与阶梯电价（居民/一般工商业常用）三种计费方式。',
+    refs: ["按「用电量 × 对应阶梯/时段电价」逐段累加，峰谷分时按各时段电量分别计价","本工具为估算，不含基本电费、力率调整电费、政府性基金及附加","电价以当地供电公司现行公布的销售电价表为准"],
     render(c) {
       function fld(label, val, unit) {
         const inp = T.el('input', { type: 'number', value: val, step: 'any' });

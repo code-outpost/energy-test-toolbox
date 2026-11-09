@@ -6,6 +6,7 @@
   TB.register({
     id: 'threephase', name: '三相功率', category: '计算器',
     desc: '三相有功功率 P=√3·U·I·cosφ（线电压/线电流），可反算电流或电压；同时给出单相功率参考。',
+    refs: ["三相对称负载：P = √3·U·I·cosφ，S = √3·U·I，Q = √3·U·I·sinφ（U、I 为线值）","功率因数 cosφ = P/S；无功补偿与线损计算均以此为基础"],
     render(c) {
       const f = {};
       const defs = [

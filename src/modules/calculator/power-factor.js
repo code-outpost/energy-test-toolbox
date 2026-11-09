@@ -4,6 +4,7 @@
   TB.register({
     id: 'power-factor', name: '功率因数补偿', category: '电力计算',
     desc: '输入有功功率与补偿前后功率因数，计算需投切的电容容量(kvar)、视在功率与电流下降幅度。',
+    refs: ["无功补偿容量 Qc = P·(tanφ₁ − tanφ₂)，依据 GB 50052《供配电系统设计规范》关于功率因数补偿的原则","tanφ = √(1−cos²φ)/cosφ；cosφ 由有功功率与视在功率之比定义","实际补偿容量还需结合变压器容量、谐波与投切分组，以设计文件为准"],
     render(c) {
       function fld(label, val, unit, id) {
         const inp = T.el('input', { type: 'number', value: val, step: 'any', id: id });

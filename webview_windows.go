@@ -14,7 +14,7 @@ func runWebView(url string) {
 	w := webview2.NewWithOptions(webview2.WebViewOptions{
 		Debug: false,
 		WindowOptions: webview2.WindowOptions{
-			Title:  "能源测试工具箱",
+			Title:  "能源测试工具箱 v" + appVersion(),
 			Width:  1280,
 			Height: 800,
 			Center: true,

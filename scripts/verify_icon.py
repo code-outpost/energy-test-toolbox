@@ -11,7 +11,9 @@ import struct
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EXE = os.path.join(ROOT, "能源测试工具箱.exe")
+# 可传入自定义产物路径（CI 里产物名为 EnergyTestToolbox.exe）
+_arg = sys.argv[1] if len(sys.argv) > 1 else "能源测试工具箱.exe"
+EXE = _arg if os.path.isabs(_arg) else os.path.join(ROOT, _arg)
 OUT = os.path.join(ROOT, "_icon_extracted.png")
 
 RT_NAMES = {3: "RT_ICON", 14: "RT_GROUP_ICON", 16: "RT_VERSION", 24: "RT_MANIFEST"}

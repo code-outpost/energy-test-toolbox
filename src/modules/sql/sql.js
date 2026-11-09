@@ -66,8 +66,8 @@
       function run() {
         out.innerHTML = '';
         const mode = modeSel.value;
-        if (mode === 'fmt') { out.appendChild(T.el('div', { class: 'hint', text: '格式化结果（' + dialectSel.value + '）' })); const r = T.el('div', { class: 'pre' }); r.textContent = format(inArea.value); out.appendChild(r); out.appendChild(T.util.copyBtn(() => r.textContent)); }
-        else if (mode === 'case') { out.appendChild(T.el('div', { class: 'hint', text: '大小写转换（' + caseSel.value + '）' })); const r = T.el('div', { class: 'pre' }); r.textContent = toCase(inArea.value, caseSel.value); out.appendChild(r); out.appendChild(T.util.copyBtn(() => r.textContent)); }
+        if (mode === 'fmt') { out.appendChild(T.el('div', { class: 'hint', text: '格式化结果（' + dialectSel.value + '）' })); const r = T.el('div', { class: 'pre' }); r.textContent = format(inArea.value); out.appendChild(r); out.appendChild(T.copyBtn(() => r.textContent)); }
+        else if (mode === 'case') { out.appendChild(T.el('div', { class: 'hint', text: '大小写转换（' + caseSel.value + '）' })); const r = T.el('div', { class: 'pre' }); r.textContent = toCase(inArea.value, caseSel.value); out.appendChild(r); out.appendChild(T.copyBtn(() => r.textContent)); }
         else if (mode === 'extract') { const e = extract(inArea.value); const t = T.el('div', { class: 'kv' }); t.appendChild(T.el('div', { class: 'k', text: '表' })); t.appendChild(T.el('div', { class: 'v', text: e.tables.join(', ') || '(无)' })); t.appendChild(T.el('div', { class: 'k', text: '字段' })); t.appendChild(T.el('div', { class: 'v', text: e.cols.join(', ') || '(无)' })); out.appendChild(t); }
         else if (mode === 'lint') { const errs = lint(inArea.value); if (!errs.length) out.appendChild(T.el('div', { class: 'tag', text: '✓ 未发现括号/引号不平衡' })); else errs.forEach(e => out.appendChild(T.el('div', { class: 'error', text: '• ' + e }))); }
       }

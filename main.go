@@ -26,6 +26,7 @@ func startServer() (string, error) {
 		return "", err
 	}
 	mux := http.NewServeMux()
+	registerDeviceAPI(mux) // /api/device/* 仅本机可访问
 	mux.Handle("/", http.FileServer(http.FS(sub)))
 	srv := &http.Server{Handler: mux}
 	go func() {

@@ -10,6 +10,7 @@
   TB.register({
     id: 'cable-drop', name: '电缆压降/载流量', category: '电力计算',
     desc: '输入功率、距离、截面与材料，计算线路电流、压降与压降率，并校验是否达标，附铜/铝参考载流量。',
+    refs: ["三相线路压降 ΔU% = √3·I·(R·cosφ + X·sinφ)·L/U；本工具按简化电阻模型估算","导线直流电阻 R = ρ·L/S，铜 20℃ 时 ρ≈0.0175 Ω·mm²/m","电压偏差限值见 GB 50054《低压配电设计规范》，以现行版本为准"],
     render(c) {
       function fld(label, val, unit) {
         const inp = T.el('input', { type: 'number', value: val, step: 'any' });
