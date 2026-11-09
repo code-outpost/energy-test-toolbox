@@ -6,6 +6,8 @@
   TB.register({
     id: 'threephase', name: '三相功率', category: '计算器',
     desc: '三相有功功率 P=√3·U·I·cosφ（线电压/线电流），可反算电流或电压；同时给出单相功率参考。',
+    accepts: ["active","voltage","current"],
+    limits: ["输入范围：cosφ ∈ (0, 1]，U、I、P 为正数；留空一项即可自动反算","适用边界：三相对称负载正弦稳态，U / I 均为线值，未计不平衡与谐波","示例：U=400 V、I=10 A、cosφ=0.8 ⇒ P ≈ 5.54 kW","警告：单相负荷或不平衡系统不能直接套用 √3 关系"],
     refs: ["三相对称负载：P = √3·U·I·cosφ，S = √3·U·I，Q = √3·U·I·sinφ（U、I 为线值）","功率因数 cosφ = P/S；无功补偿与线损计算均以此为基础"],
     render(c) {
       const f = {};
@@ -25,6 +27,15 @@
         ]));
       });
       const out = T.el('div', {});
+      let last = null;
+      if (TB.bus) {
+        const rr = TB.bus.consume('threephase', [
+          { el: f.P, family: 'active', unit: 'W', label: '有功功率 P' },
+          { el: f.U, family: 'voltage', unit: 'V', label: '线电压 U' },
+          { el: f.I, family: 'current', unit: 'A', label: '线电流 I' }
+        ]);
+        if (rr && rr.filled && TB.toast) TB.toast('已引用「' + rr.label + '」= ' + rr.value + ' ' + rr.unit + ' 填入' + rr.target + '，请补全 cosφ 后计算', 'ok');
+      }
 
       function compute() {
         out.innerHTML = '';
@@ -62,15 +73,22 @@
         box.appendChild(T.el('div', { text: '单相参考 P₁ = ' + fmt(r.P1) + ' W' }));
         box.appendChild(T.el('div', { class: 'hint', style: 'margin-top:6px', text: '公式：P = √3 × U × I × cosφ' }));
         out.appendChild(box);
+        last = { P: r.P, U: U, I: I, cos: cos };
       }
       function fmt(n) { return Math.round(n * 1e6) / 1e6; }
+      function publish() {
+        if (!last || !isFinite(last.P) || !TB.bus) { if (TB.toast) TB.toast('请先完成一次有效计算', 'warn'); return; }
+        TB.bus.publish('threephase', '三相有功功率 P', Number((last.P / 1000).toFixed(4)), 'kW', { note: 'P = √3·U·I·cosφ' });
+        if (TB.toast) TB.toast('已发布三相有功功率，可送入「功率因数补偿」继续算补偿容量', 'ok');
+      }
 
       c.appendChild(T.el('div', { class: 'card' }, [
         T.el('h3', { text: '三相有功功率计算' }),
         grid,
         T.el('div', { class: 'row', style: 'margin-top:6px' }, [
           T.el('button', { class: 'btn primary', text: '计算', onclick: compute }),
-          T.el('button', { class: 'btn ghost', text: '清空', onclick: () => { defs.forEach(([k]) => f[k].value = ''); out.innerHTML = ''; } })
+          T.el('button', { class: 'btn ghost', text: '发布结果', onclick: publish }),
+          T.el('button', { class: 'btn ghost', text: '清空', onclick: () => { defs.forEach(([k]) => f[k].value = ''); out.innerHTML = ''; last = null; } })
         ]),
         out
       ]));

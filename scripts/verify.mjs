@@ -35,8 +35,9 @@ for (const d of ['src/modules']) {
     if (f.endsWith('.js')) files.push(path.join(d, f).split(path.sep).join('/'));
   }
 }
-// 注册表必须在最前（模块文件会引用 TB）
-const allFiles = ['src/utils/modules.js', ...files.filter(f => f !== 'src/utils/modules.js')];
+// 共享基础层必须在最前（模块文件会引用 TB / TB.units / TB.bus）
+const shared = ['src/utils/modules.js', 'src/utils/units.js', 'src/utils/bus.js'];
+const allFiles = [...shared, ...files.filter(f => !f.startsWith('src/utils/'))];
 
 let loadErr = 0;
 for (const f of allFiles) {

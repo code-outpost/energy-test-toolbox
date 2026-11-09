@@ -29,6 +29,8 @@ node scripts/verify.mjs             # 全部模块注册 + 渲染
 node scripts/test.interact.mjs      # 交互逻辑
 node scripts/test.boot.mjs          # app.js 入口启动（防白屏）
 node scripts/test.formulas.mjs      # 数值标准答案
+node scripts/test.units.mjs         # 量纲层：换算 / 功率三角形 / 混用拦截
+node scripts/test.bus.mjs           # 结果总线与跨工具串联
 node scripts/check-docs.mjs         # 跨文档计数一致性
 node scripts/check-light-theme.mjs  # 真实浏览器 dark/light 逐模块渲染 + 对比度
 python scripts/verify_syso.py       # 已提交的 PE 资源对象

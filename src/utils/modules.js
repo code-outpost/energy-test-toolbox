@@ -34,6 +34,30 @@ TB.util = {
     return e;
   },
 
+  // SVG 构建器（趋势图等内联图形）：浏览器用 createElementNS，DOM 桩自动降级
+  svg(tag, attrs, children, text) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const e = (document.createElementNS && document.createElementNS(ns, tag)) || document.createElement(tag);
+    if (attrs) {
+      for (const k in attrs) {
+        const v = attrs[k];
+        if (v == null) continue;
+        if (k === 'text') e.textContent = String(v);
+        else if (k === 'html') e.innerHTML = String(v);
+        else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
+        else e.setAttribute(k, String(v));
+      }
+    }
+    if (text != null) e.textContent = String(text);
+    if (children) {
+      (Array.isArray(children) ? children : [children]).forEach(c => {
+        if (c == null) return;
+        e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+      });
+    }
+    return e;
+  },
+
   async copy(text) {
     try {
       await navigator.clipboard.writeText(text);

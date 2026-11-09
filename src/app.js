@@ -62,6 +62,8 @@
       if (t.parentNode && t.parentNode.removeChild) t.parentNode.removeChild(t);
     }, 6000);
   }
+  TB.toast = toast; // 供模块提示（如跨工具引用结果）
+  let currentBody = null;
 
   // ---- 主题 ----
   const savedTheme = localStorage.getItem('tb_theme') || 'dark';
@@ -187,6 +189,7 @@
   }
 
   function renderDashboard() {
+    currentBody = null;
     content.innerHTML = '';
     const stage = TB.util.el('div', { class: 'module-stage stage-home' });
     const main = TB.util.el('div', { class: 'stage-main' });
@@ -262,8 +265,57 @@
         TB.util.el('p', { class: 'hint', text: '以现行标准原文与现场规程为准；计算结果仅供校核参考。' })
       ]));
     }
+    if (Array.isArray(m.limits) && m.limits.length) {
+      aside.appendChild(asideCard('适用边界与校核提示', [
+        TB.util.el('ul', { class: 'tip-list limit-list' }, m.limits.map(t => TB.util.el('li', { text: t })))
+      ]));
+    }
+    if (TB.bus) {
+      const items = TB.bus.all().slice(0, 5);
+      const box = TB.util.el('div', { class: 'bus-list' });
+      if (!items.length) {
+        box.appendChild(TB.util.el('p', { class: 'hint', text: '暂无结果。在支持的工具里点击「计算 / 估算并发布结果」，结果会出现在这里，可一键送入其它工具继续计算。' }));
+      }
+      items.forEach(e => {
+        const row = TB.util.el('div', { class: 'bus-row' });
+        row.appendChild(TB.util.el('div', { class: 'bus-main' }, [
+          TB.util.el('span', { class: 'bus-label', text: e.label }),
+          TB.util.el('span', { class: 'bus-val', text: String(e.value) + ' ' + (e.unit || '') })
+        ]));
+        row.appendChild(TB.util.el('div', { class: 'hint', text: '来自 ' + ((TB.modules.find(x => x.id === e.modId) || {}).name || e.modId) }));
+        const targets = TB.bus.targets().filter(t => t.id !== m.id && (!e.family || t.accepts.indexOf(e.family) >= 0 || t.accepts.indexOf('*') >= 0));
+        if (targets.length) {
+          const sel = TB.util.el('select', { 'aria-label': '送入目标工具' },
+            targets.map(t => TB.util.el('option', { value: t.id, text: t.name })));
+          sel.value = targets[0].id;
+          row.appendChild(TB.util.el('div', { class: 'row' }, [
+            sel,
+            TB.util.el('button', {
+              class: 'btn sm ghost', text: '送入 →',
+              onclick: () => {
+                TB.bus.requestFill(e, sel.value);
+                const t = TB.modules.find(x => x.id === sel.value);
+                toast('已引用「' + e.label + '」，正在送入 ' + (t ? t.name : sel.value), 'ok');
+                location.hash = '#/m/' + encodeURIComponent(sel.value);
+              }
+            })
+          ]));
+        } else {
+          row.appendChild(TB.util.el('p', { class: 'hint', text: '当前没有可接收该量纲的工具。' }));
+        }
+        box.appendChild(row);
+      });
+      const children = [box];
+      if (items.length) {
+        children.push(TB.util.el('button', {
+          class: 'btn sm ghost', text: '清空结果',
+          onclick: () => { TB.bus.clear(); renderContent(m.id); toast('结果中转站已清空', 'ok'); }
+        }));
+      }
+      aside.appendChild(asideCard('结果中转站（跨工具串联）', children));
+    }
     aside.appendChild(asideCard('小贴士', [
-      TB.util.el('p', { text: '结果可点击「复制」按钮拷贝；按 / 或 Ctrl+K 聚焦搜索，Esc 返回首页；右上角可切换主题、查看版本与检查更新。' })
+      TB.util.el('p', { text: '结果可点击「复制」按钮拷贝；按 / 或 Ctrl+K 聚焦搜索、Enter 触发计算、Esc 返回首页；右上角可切换主题、查看版本与检查更新。右侧「结果中转站」可把上一次结果送入其它工具继续算。' })
     ]));
   }
 
@@ -297,6 +349,7 @@
       favBtn
     ]));
     const body = TB.util.el('div', { class: 'tool-body' });
+    currentBody = body;
     inner.appendChild(body);
     main.appendChild(inner);
     stage.appendChild(main);
@@ -341,6 +394,16 @@
       } else if (k === 'Escape') {
         if (typing && search.value) { search.value = ''; renderSidebar(''); }
         else location.hash = '#/home';
+      } else if (k === 'Enter' && tag !== 'textarea' && tag !== 'select' && tag !== 'button') {
+        // 输入框内回车 = 触发当前模块的主计算按钮（不翻页、不动鼠标）
+        const b = currentBody;
+        if (b && b.querySelectorAll) {
+          const btns = b.querySelectorAll('.btn.primary, button.primary');
+          if (btns && btns.length && typeof btns[0].click === 'function') {
+            if (e.preventDefault) e.preventDefault();
+            btns[0].click();
+          }
+        }
       }
     });
   }

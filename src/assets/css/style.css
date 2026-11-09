@@ -543,3 +543,43 @@ th { background: var(--surface-3); font-weight: 700; color: var(--text-2); }
 .dl-hint { font-size: 12.5px; color: var(--text-2); margin-top: 14px; line-height: 1.7; }
 .dl-hint a { color: var(--accent); }
 [data-theme="light"] .toast { box-shadow: 0 8px 28px rgba(15, 40, 80, .16); }
+
+/* ===== v0.2.0：适用边界 / 结果中转站 / 趋势曲线 / 可打印 PDF 报告 ===== */
+.limit-list li::before { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+.bus-list { display: flex; flex-direction: column; gap: 10px; }
+.bus-row {
+  background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 9px 10px; margin-bottom: 10px;
+}
+.bus-main { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.bus-label { font-size: 12.2px; color: var(--text-2); word-break: break-all; }
+.bus-val { font-family: var(--mono); font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; }
+.bus-row .row { margin-top: 8px; gap: 6px; }
+.bus-row select { min-width: 0; flex: 1 1 auto; font-size: 12px; padding: 5px 7px; }
+.trend-box { margin-top: 10px; }
+.trend-svg { display: block; background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.print-report { display: none; }
+.print-report.visible { display: block; margin-top: 14px; }
+.print-report .rp-head h1 { font-size: 21px; margin: 0 0 6px; }
+.print-report .rp-meta { margin-bottom: 14px; }
+.print-report .rp-meta th { width: 96px; }
+.print-report .card { margin-bottom: 12px; }
+.rp-sign-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 18px; font-size: 13px; color: var(--text-2); }
+
+/* 打印 / 另存为 PDF：只输出报告区，隐藏全部交互 UI */
+@media print {
+  body { background: #fff !important; color: #111 !important; }
+  .topbar, .sidebar, .statusbar, .tool-header, .stage-aside, .toast, .no-print { display: none !important; }
+  .layout, .content, .module-stage, .stage-main, .content-inner, .tool-body {
+    display: block !important; width: 100% !important; max-width: none !important;
+    margin: 0 !important; padding: 0 !important; border: 0 !important;
+    box-shadow: none !important; overflow: visible !important;
+  }
+  .tool-body > .card { display: none !important; }
+  .print-report { display: block !important; color: #111 !important; background: #fff !important; }
+  .print-report .card, .print-report .data-table { background: #fff !important; border: 1px solid #bbb !important; box-shadow: none !important; }
+  .print-report .hint, .print-report p, .print-report td, .print-report th { color: #222 !important; }
+  .print-report .table-wrap { max-height: none !important; overflow: visible !important; }
+  .print-report .trend-svg { background: #fff !important; color: #0a5a80 !important; }
+  @page { margin: 16mm; }
+}

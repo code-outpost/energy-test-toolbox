@@ -12,7 +12,7 @@
     <div class="brand">
       <span class="logo" aria-hidden="true">⚡</span>
       <span>能源测试工具箱</span>
-      <button id="appVersion" class="ver-badge" title="点击查看更新" aria-label="当前版本，点击检查更新">v0.1.0</button>
+      <button id="appVersion" class="ver-badge" title="点击查看更新" aria-label="当前版本，点击检查更新">v0.2.0</button>
     </div>
     <div class="top-actions">
       <input id="globalSearch" class="search" type="search" aria-label="搜索工具" placeholder="搜索工具（/ 或 Ctrl+K）..." />
@@ -30,6 +30,9 @@
   <script src="utils/modules.js"></script>
   <!-- 版本信息（单一来源） -->
   <script src="version.js"></script>
+  <!-- 共享基础层：统一量纲 / 跨工具结果总线 / 测试记录 -->
+  <script src="utils/units.js"></script>
+  <script src="utils/bus.js"></script>
   <!-- 计算器共享引擎 -->
   <script src="modules/calculator/engine.js"></script>
   <!-- 计算器套件 -->
@@ -53,6 +56,7 @@
   <script src="modules/hv/hv-safety.js"></script>
   <script src="modules/hv/hv-ampacity.js"></script>
   <script src="modules/hv/hv-cheatsheet.js"></script>
+  <script src="modules/hv/hv-tables.js"></script>
   <!-- 电力 / 能源计算器（旧） -->
   <script src="modules/calculator/ohm.js"></script>
   <script src="modules/calculator/threephase.js"></script>
@@ -103,6 +107,8 @@
   <script src="modules/misc/hex-dump.js"></script>
   <script src="modules/misc/calc.js"></script>
   <script src="modules/misc/batch-calc.js"></script>
+  <script src="modules/misc/unit-guard.js"></script>
+  <script src="modules/misc/test-records.js"></script>
   <!-- 应用入口（最后加载，渲染导航与仪表盘） -->
   <script src="app.js"></script>
 </body>

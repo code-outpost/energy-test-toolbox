@@ -1,7 +1,7 @@
 {
   "name": "energy-test-toolbox",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "能源开发测试工具箱 - 电力/新能源开发测试原生桌面工具合集（Windows + macOS，Go + WebView2 壳）",
   "scripts": {

@@ -74,7 +74,7 @@ function findId(root, id) { let r=null; walk(root, n => { if (!r && n.getAttribu
 
 global.window = global;
 const root = process.cwd();
-const files = ['src/utils/modules.js','src/modules/calculator/engine.js'];
+const files = ['src/utils/modules.js','src/utils/units.js','src/utils/bus.js','src/modules/calculator/engine.js'];
 for (const d of ['src/modules']) {
   for (const f of fs.readdirSync(d, { recursive: true })) {
     if (f.endsWith('.js')) files.push(path.join(d, f).split(path.sep).join('/'));

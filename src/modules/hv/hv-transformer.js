@@ -4,6 +4,8 @@
   TB.register({
     id: 'hv-transformer', name: '变压器参数与变比', category: '高压电工',
     desc: '输入容量与一/二次侧电压，计算额定一、二次电流与电压/电流变比；并支持按一次侧实际电流折算二次侧电流。',
+    accepts: ["apparent"],
+    limits: ["输入范围：S、U₁、U₂ 均为正数","适用边界：三相双绕组变压器稳态额定值，未计分接位置、接线组别与过载能力","示例：800 kVA / 10 kV / 0.4 kV ⇒ I₁ ≈ 46.2 A，I₂ ≈ 1154.7 A","警告：实际额定电流以铭牌与 GB/T 1094 系列出厂试验报告为准"],
     refs: ["三相变压器额定电流 I = S/(√3·U)，定义见 GB/T 1094.1《电力变压器 第1部分：总则》","电压变比 k = U₁/U₂，电流变比与之互为倒数关系；分接位置以铭牌为准","短路阻抗、接线组别等参数参见 GB/T 1094 系列与出厂试验报告"],
     tips: ['三相变压器额定电流 I = S×1000 / (√3·U)', '电压变比 k = U₁/U₂，电流变比 ≈ k（I₂ ≈ k·I₁）', '10kV/0.4kV 配变常用容量 50~2000kVA', 'Yyn0 / Dyn11 为常见接线组别'],
     ref: [{ k: '额定电流', v: 'I = S/(√3·U)（三相）' }, { k: '变比', v: 'k = U₁/U₂ = I₂/I₁' }],
@@ -17,7 +19,12 @@
       const u2 = fld('二次侧电压 U₂', '400', 'V', 'tf_u2');
       const i1a = fld('一次侧实际电流 I₁′', '10', 'A', 'tf_i1a');
 
+      if (TB.bus) {
+        const rr = TB.bus.consume('hv-transformer', [{ el: s.inp, family: 'apparent', unit: 'kVA', label: '容量 S' }]);
+        if (rr && rr.filled && TB.toast) TB.toast('已引用「' + rr.label + '」= ' + rr.value + ' ' + rr.unit + ' 填入容量 S', 'ok');
+      }
       const out = T.el('div', {});
+      let last = null;
       function calc() {
         const S = parseFloat(s.inp.value), U1 = parseFloat(u1.inp.value), U2 = parseFloat(u2.inp.value), I1a = parseFloat(i1a.inp.value);
         out.innerHTML = '';
@@ -44,11 +51,20 @@
           T.el('tr', {}, [T.el('th', { text: '项目' }), T.el('th', { text: '数值' }), T.el('th', { text: '公式' })])
         ].concat(rows.map(r => T.el('tr', {}, [T.el('td', { text: r[0] }), T.el('td', { text: r[1] }), T.el('td', { class: 'hint', text: r[2] })]))));
         out.appendChild(box); out.appendChild(tbl);
+        last = { S: S, U1: U1, U2: U2, I1: I1, I2: I2, k: k };
+      }
+      function publish() {
+        if (!last || !TB.bus) { if (TB.toast) TB.toast('请先输入有效参数完成计算', 'warn'); return; }
+        TB.bus.publish('hv-transformer', '额定二次电流 I₂', Number(last.I2.toFixed(1)), 'A', { note: 'S = ' + last.S + ' kVA' });
+        TB.bus.publish('hv-transformer', '额定一次电流 I₁', Number(last.I1.toFixed(1)), 'A', { note: 'U₁ = ' + last.U1 + ' V' });
+        TB.bus.publish('hv-transformer', '电压变比 k', Number(last.k.toFixed(3)), '1', {});
+        if (TB.toast) TB.toast('已发布 3 条结果，可送入「导线载流量口诀」或「量纲校验台」', 'ok');
       }
       [s.inp, u1.inp, u2.inp, i1a.inp].forEach(e => e.addEventListener('input', calc));
       c.appendChild(T.el('div', { class: 'card' }, [
         T.el('h3', { text: '变压器额定参数与变比' }),
         T.el('div', { class: 'form-grid' }, [s.wrap, u1.wrap, u2.wrap, i1a.wrap]),
+        T.el('div', { class: 'row' }, [T.el('button', { class: 'btn ghost', text: '发布结果（可送入其它工具）', onclick: publish })]),
         out
       ]));
       calc();

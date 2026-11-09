@@ -1,6 +1,6 @@
 # ⚡ 能源测试工具箱
 
-> 面向电力 / 新能源开发测试的一站式桌面工具集 —— **58 个工具 · 10 大分类 · 单文件 exe · 完全离线**
+> 面向电力 / 新能源开发测试的一站式桌面工具集 —— **61 个工具 · 10 大分类 · 单文件 exe · 完全离线**
 
 [官网](https://code-outpost.github.io/energy-test-toolbox/) · [下载 Windows 版](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe) · [Releases](https://github.com/code-outpost/energy-test-toolbox/releases) · [问题反馈](https://github.com/code-outpost/energy-test-toolbox/issues)
 
@@ -15,27 +15,34 @@
 | 直接下载 | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe)（GitHub Release 附件，双击即可） |
 | 成品文件 | 仓库根目录 `能源测试工具箱.exe`，`dist/EnergyTestToolbox.exe` 为其同步镜像；两者与 Release 附件的 SHA256 完全一致 |
 | 系统要求 | Windows 10 / 11，需 Microsoft Edge WebView2 运行时（系统通常已自带） |
-| 安装 | 免安装、绿色单文件，约 7.9 MB，无需额外 DLL |
+| 安装 | 免安装、绿色单文件，约 8.2 MB，无需额外 DLL |
 | 联网 | 运行时零外网请求，所有前端资源已嵌入二进制 |
 
 WebView2Loader.dll 已内嵌；若窗口无法打开，请安装 [WebView2 运行时](https://developer.microsoft.com/microsoft-edge/webview2/)。
 
 ---
 
-## 功能一览（58 个工具 / 10 大分类）
+## 功能一览（61 个工具 / 10 大分类）
 
 | 分类 | 工具数 | 代表功能 |
 | --- | ---: | --- |
 | 计算器 | 10 | 标准 / 科学 / 程序员计算器、日期、分数、欧姆定律、三相功率、电阻色环、单位换算、表达式计算 |
-| 协议报文解析 | 9 | IEC 104 / 101 / 103、MODBUS、GOOSE、SV 采样值、DL/T 645、DNP3、CDT、MMS / MQTT / OPC UA |
-| 高压电工 | 6 | 变压器变比、电动机额定电流、感抗容抗与谐振、安全距离、载流量口诀、考证公式速查卡 |
+| 协议报文解析 | 10 | IEC 104 / 101 / 103、MODBUS、GOOSE、SV、DL/T 645、DNP3、CDT、MMS / MQTT / OPC UA、设备联调 |
+| 高压电工 | 7 | 变压器变比、电动机额定电流、感抗容抗与谐振、安全距离、载流量口诀、公式速查、工程标准数据表 |
 | 日常工具 | 6 | 通用单位换算、个税、房贷月供、BMI、几何计算、随机抽签 |
 | 开发常用 | 6 | JSON 格式化、正则测试、颜色转换、文本处理、Base64 / URL、密码生成 |
 | 电力计算 | 5 | 功率因数补偿、电缆压降与载流量、光伏阵列、蓄电池容量、电费估算 |
 | 通用编解码 | 5 | 进制转换、编码转换、时间戳、字节序互换、校验和 / CRC |
-| Linux 命令 | 3 | chmod 权限计算器、常用命令速查等 |
-| 综合工具 | 2 | 跨场景补充工具 |
-| SQL 辅助 | 1 | SQL 语句辅助 |
+| Linux 命令 | 4 | chmod 权限计算器、命令速查、命令解析、crontab 生成器 |
+| SQL 辅助 | 3 | SQL 语句辅助、格式化美化、建表语句生成 |
+| 综合工具 | 5 | HEX 差异 / Dump、表达式计算、批量计算台、量纲校验台、测试记录 |
+
+### v0.2.0 工程化能力
+
+- **统一量纲层**（`src/utils/units.js`）：16 个单位族、SI 基准换算、仿射温标（°C / °F / K）；专门拦截 kW / kvar / kVA 混加，按 S = √(P²+Q²) 合成并给出 cosφ。
+- **跨工具结果串联**（`src/utils/bus.js`）：右侧「结果中转站」支持「发布 → 引用填入」，按量纲自动匹配目标字段并换算单位；`Enter` 直接触发当前工具的计算。
+- **报表深化**：批量计算台新增内联 SVG 趋势曲线、Excel (`.xls`) 导出、可打印 PDF 计算书（含公式 / 明细 / 趋势 / 签署栏）与本机测试记录留痕（可回看 / 恢复 / 导出）。
+- **工程校核**：12 个电力 / 高压模块统一标注输入范围、适用边界、示例与警告；新增「工程标准数据表」（载流量 / 短路阻抗 / 继保系数，带严格边界声明与标准出处）。
 
 界面采用**固定高度双栏布局**：左侧主体操作，右侧面板承载说明 / 历史 / 速查，整页不纵向滚动；窄窗口自动折叠为单列。默认深色科技感主题，可一键切换浅色；顶栏支持全局搜索。
 
@@ -86,11 +93,13 @@ python scripts/verify_icon.py              # 校验 exe 的 PE 资源目录含�
 │   ├── index.html             静态顶栏 + 脚本入口
 │   ├── app.js                 路由、分类渲染、主题、搜索
 │   ├── assets/css/style.css   深色 HUD / 霓虹主题（v5）
-│   ├── utils/modules.js       声明式模块注册表
-│   └── modules/               58 个工具模块（按分类分目录）
+│   ├── utils/modules.js       声明式模块注册表 + SVG 构建器
+│   ├── utils/units.js         统一量纲层
+│   ├── utils/bus.js           结果总线 + 本机测试记录
+│   └── modules/               61 个工具模块（按分类分目录）
 ├── docs/                      官网静态站（GitHub Pages 发布）
 │   ├── index.html
-│   └── assets/                图标与 3 张真实应用截图
+│   └── assets/                图标与 6 张真实应用截图
 ├── scripts/                   构建与测试脚本
 ├── dist/                      Release 产物同步镜像 exe（CI 自动回写）
 └── .github/workflows/         构建 + Pages 部署流水线
@@ -104,13 +113,15 @@ python scripts/verify_icon.py              # 校验 exe 的 PE 资源目录含�
 
 | 脚本 | 作用 | 当前结果 |
 | --- | --- | --- |
-| `node scripts/verify.mjs` | 全模块注册 + 渲染 | 58 / 58 通过 |
+| `node scripts/verify.mjs` | 全模块注册 + 渲染 | 61 / 61 通过 |
 | `node scripts/test.interact.mjs` | 模拟点击 / 输入的交互逻辑 | 20 / 20 通过 |
 | `node scripts/test.boot.mjs` | 按 index.html 顺序加载**含 app.js** 的全部脚本，验证应用启动渲染 | 0 失败 |
-| `node scripts/test.formulas.mjs` | 计算类模块的数值标准答案（golden case） | 42 / 42 通过 |
+| `node scripts/test.formulas.mjs` | 计算类模块的数值标准答案（golden case） | 55 / 55 通过 |
 | `node scripts/check-syntax.mjs` | 全脚本语法 + `T.util.*` 命名空间误用静态防线 | 0 失败 |
 | `node scripts/check-docs.mjs` | 模块计数 / 版本号 / 脚本引入的跨文档一致性 | 通过 |
-| `node scripts/check-light-theme.mjs` | 真实 Chromium 逐模块渲染 dark + light，检测文字对比度 | 58×2 全通过 |
+| `node scripts/check-light-theme.mjs` | 真实 Chromium 逐模块渲染 dark + light，检测文字对比度 | 61×2 全通过 |
+| `node scripts/test.units.mjs` | 量纲层：换算 / 仿射温标 / 功率三角形 / 混用拦截 | 38 / 38 通过 |
+| `node scripts/test.bus.mjs` | 结果总线：发布 / 引用 / 单位换算 / 端到端串联 / 测试记录 | 27 / 27 通过 |
 | `python scripts/verify_syso.py` | 校验已提交的 PE 资源对象（CI 无 exe 时用） | 通过 |
 | `python scripts/verify_icon.py` | 校验 exe 的 PE 资源含 RT_ICON / RT_GROUP_ICON / RT_MANIFEST | 通过 |
 
@@ -144,8 +155,8 @@ python scripts/verify_icon.py              # 校验 exe 的 PE 资源目录含�
 ## 说明
 
 - macOS 版本（`webview` / CGo）暂缓，当前交付以 Windows 为主；唯一 WebView 入口带 `//go:build windows`，CI 只构建 Windows。
-- 设计文档见 [`design.md`](design.md)，与本文档的模块计数保持一致（58 个工具 / 10 个分类）。
+- 设计文档见 [`design.md`](design.md)，与本文档的模块计数保持一致（61 个工具 / 10 个分类）。
 - 所有计算均在本地完成，不上传任何输入数据。
-- 版本号以 [`src/version.js`](src/version.js) 为唯一来源（当前 `v0.1.0`），应用内「⟳ 更新」可检查 GitHub 最新版本。
+- 版本号以 [`src/version.js`](src/version.js) 为唯一来源（当前 `v0.2.0`），应用内「⟳ 更新」可检查 GitHub 最新版本。
 - 每次 Release 附带 `SHA256SUMS.txt`，下载后建议核对哈希；未签名 exe 首次运行可能触发 Windows SmartScreen 提示。
 - 许可证：[MIT](LICENSE) · 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md) · 更新日志：[CHANGELOG.md](CHANGELOG.md) · 问题反馈：[Issues](https://github.com/code-outpost/energy-test-toolbox/issues)

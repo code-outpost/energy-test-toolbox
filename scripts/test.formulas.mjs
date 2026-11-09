@@ -134,5 +134,42 @@ check('计算类模块均有 desc', TB.modules.filter(m => !m.desc).length === 0
   check('字节序模块回归（修复后）', r.text.includes('16909060'), true);
 }
 
+// ---- v0.2.0：适用边界元数据 + 跨工具接收能力 ----
+const needLimits = TB.modules.filter(m => m.category === '电力计算' || m.category === '高压电工');
+let limOk = 0;
+for (const m of needLimits) {
+  if (Array.isArray(m.limits) && m.limits.length >= 3) limOk++;
+  else console.log('  ✗ 缺少适用边界:', m.id);
+}
+check('电力/高压模块均标注适用边界 (' + limOk + '/' + needLimits.length + ')', limOk === needLimits.length, true);
+const receivers = TB.modules.filter(m => Array.isArray(m.accepts) && m.accepts.length);
+check('声明跨工具接收能力的模块 ≥ 6 (' + receivers.length + ')', receivers.length >= 6, true);
+
+// ---- v0.2.0：新模块标准答案 ----
+{
+  const r = render('unit-guard');
+  check('量纲校验台 1 kV = 1000 V', r.text, '1000.00 V');
+  check('量纲校验台 P/Q 合成 5 kVA', r.text, '5.0000 kVA');
+  check('量纲校验台 cosφ = 0.6', r.text, '0.6000');
+  check('量纲校验台含 kW+kvar 陷阱', r.text, 'kW + kvar');
+}
+{
+  const r = render('hv-tables');
+  check('工程标准数据表 25mm² 铜芯 105 A', r.text, '105.0 A');
+  check('工程标准数据表含边界警告', r.text, '不得直接');
+  check('工程标准数据表含标准出处', r.m.refs.join(' '), 'GB/T 16895.15');
+  setInp(r.body, 'ht_x', 50);
+  check('工程标准数据表 50mm² 插值', bodyText(r.body), '160.0 A');
+}
+{
+  const r = render('test-records');
+  check('测试记录空状态提示', r.text, '暂无记录');
+}
+{
+  const r = render('batch-calc');
+  check('批量计算台趋势曲线（SVG 轴标签）', r.text, '行号 1 →');
+  check('批量计算台含 Excel / PDF 导出按钮', r.text, '导出 Excel');
+}
+
 console.log('\n通过:', pass, '  失败:', fail);
 process.exit(fail ? 1 : 0);
