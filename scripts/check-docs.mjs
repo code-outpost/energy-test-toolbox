@@ -35,7 +35,7 @@ for (const f of walk('src/modules')) {
 // 版本号唯一来源
 const version = (fs.readFileSync('src/version.js', 'utf8').match(/VERSION\s*=\s*'([^']+)'/) || [])[1] || '?';
 
-const docs = ['README.md', 'design.md', 'docs/index.html', 'CHANGELOG.md'];
+const docs = ['README.md', 'design.md', 'docs/index.html', 'CHANGELOG.md', 'RELEASE_NOTES.md'];
 const stale = [];
 const staleNums = [];
 // 只把「接近总量」的数字视为过时总量；分类内的「6 个工具」等描述不误伤。

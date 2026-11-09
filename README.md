@@ -15,7 +15,7 @@
 | 直接下载 | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe)（GitHub Release 附件，双击即可） |
 | 成品文件 | 仓库根目录 `能源测试工具箱.exe`，`dist/EnergyTestToolbox.exe` 为其同步镜像；两者与 Release 附件的 SHA256 完全一致 |
 | 系统要求 | Windows 10 / 11，需 Microsoft Edge WebView2 运行时（系统通常已自带） |
-| 安装 | 免安装、绿色单文件，约 8.2 MB，无需额外 DLL |
+| 安装 | 免安装、绿色单文件，约 8.0 MB，无需额外 DLL |
 | 联网 | 运行时零外网请求，所有前端资源已嵌入二进制 |
 
 WebView2Loader.dll 已内嵌；若窗口无法打开，请安装 [WebView2 运行时](https://developer.microsoft.com/microsoft-edge/webview2/)。

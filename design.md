@@ -9,7 +9,7 @@
 > - **报表深化**：批量计算台新增内联 SVG 趋势曲线、Excel (`.xls`) 导出、可打印 PDF 计算书（`@media print` 仅输出报告区，含公式 / 元数据 / 明细 / 趋势 / 签署栏）与本机测试记录（`TB.records`，30 条上限，支持回看 / 恢复 / 导出 / 清空）。新增「测试记录」工具。
 > - **工程校核**：注册表新增 `limits` 元数据（输入范围 / 适用边界 / 示例 / 警告），12 个电力与高压模块全覆盖并在右侧面板统一渲染；新增「工程标准数据表」（导线载流量、配变短路阻抗、继保整定系数），所有参考值均带边界声明与 GB/T、DL/T 标准出处。
 > - **新模块**：`unit-guard`、`test-records`、`hv-tables`，模块总数 **58 → 61**（10 分类不变；高压电工 6 → 7、综合工具 3 → 5）。
-> - **验证**：61/61 模块注册渲染、20/20 交互、55/55 数值、38/38 量纲、27/27 结果总线、boot 0 失败、语法 67 文件 0 失败、双主题浏览器探针 61×2 全通过；`test.units.mjs` / `test.bus.mjs` 新增并接入 CI。
+> - **验证**：61/61 模块注册渲染、20/20 交互、55/55 数值、38/38 量纲、27/27 结果总线、boot 0 失败、语法 67 文件 0 失败、双主题浏览器探针 61×2 全通过；`test.units.mjs` / `test.bus.mjs` 新增并接入 CI。Go 单文件 exe 约 8.0 MB（含 PE 图标资源），`SHA256SUMS.txt` 随 Release 发布。
 >
 > **v3.8（2026-11-09）v0.1.0 正式发布**
 > - **发布链路**：重写 `.github/workflows/build.yml`，移除在 macOS 上必然失败的 job（唯一入口 `webview_windows.go` 带 `//go:build windows`）；Windows job 串起「rsrc → build → 全套测试 → SHA256 → Release」，产物名统一为 `EnergyTestToolbox.exe`，官网下载改指 `releases/latest`。补 `LICENSE`(MIT)、`CHANGELOG.md`、`CONTRIBUTING.md`、Issue 模板。
