@@ -15,7 +15,7 @@ EnergyToolbox.app/
 
 # 说明：以下文件需要入库
 #   能源测试工具箱.exe          根目录中文名成品
-#   dist/EnergyTestToolbox.exe 官网下载直链用（ASCII 名）
+#   dist/EnergyTestToolbox.exe 下载镜像（ASCII 名，Release 发布后由 CI 自动回写）
 #   assets/app.ico, app.manifest
 #   rsrc_windows_amd64.syso    Windows PE 图标资源（CI 构建也需要）
 #   docs/                      官网静态站
