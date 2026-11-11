@@ -1,6 +1,6 @@
 # ⚡ 能源测试工具箱
 
-> 面向电力 / 新能源开发测试的一站式桌面工具集 —— **62 个工具 · 10 大分类 · Windows / macOS 双平台 · 完全离线**
+> 面向电力 / 新能源开发测试的一站式桌面工具集 —— **63 个工具 · 10 大分类 · Windows / macOS 双平台 · 完全离线**
 
 [官网](https://code-outpost.github.io/energy-test-toolbox/) · [下载 Windows 版](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe) · [下载 macOS 版](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.zip) · [Releases](https://github.com/code-outpost/energy-test-toolbox/releases) · [问题反馈](https://github.com/code-outpost/energy-test-toolbox/issues)
 
@@ -12,7 +12,7 @@
 
 | 平台 | 下载 | 系统要求 / 形态 |
 | --- | --- | --- |
-| Windows | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe) | Windows 10 / 11，需 [Edge WebView2 运行时](https://developer.microsoft.com/microsoft-edge/webview2/)（系统通常已自带）；绿色单文件，约 8.0 MB |
+| Windows | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe) | Windows 10 / 11，需 [Edge WebView2 运行时](https://developer.microsoft.com/microsoft-edge/webview2/)（系统通常已自带）；绿色单文件，约 9 MB |
 | macOS | [EnergyTestToolbox-macos-universal.zip](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.zip) | macOS 11+，Intel / Apple Silicon 通用包；`.app` 原生 WKWebView 窗口，无需额外运行时 |
 
 | 项目 | 说明 |
@@ -31,12 +31,12 @@ xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app
 
 ---
 
-## 功能一览（62 个工具 / 10 大分类）
+## 功能一览（63 个工具 / 10 大分类）
 
 | 分类 | 工具数 | 代表功能 |
 | --- | ---: | --- |
 | 计算器 | 10 | 标准 / 科学 / 程序员计算器、日期、分数、欧姆定律、三相功率、电阻色环、单位换算、表达式计算 |
-| 协议报文解析 | 10 | IEC 104 / 101 / 103、MODBUS、GOOSE、SV、DL/T 645、DNP3、CDT、MMS / MQTT / OPC UA、设备联调 |
+| 协议报文解析 | 11 | IEC 104 / 101 / 103、MODBUS、GOOSE、SV、DL/T 645、DNP3、CDT、MMS / MQTT / OPC UA、设备联调，以及 **IEC 104 四遥点位计算器** |
 | 高压电工 | 7 | 变压器变比、电动机额定电流、感抗容抗与谐振、安全距离、载流量口诀、公式速查、工程标准数据表 |
 | 日常工具 | 6 | 通用单位换算、个税、房贷月供、BMI、几何计算、随机抽签 |
 | 开发常用 | 6 | JSON 格式化、正则测试、颜色转换、文本处理、Base64 / URL、密码生成 |
@@ -45,6 +45,16 @@ xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app
 | Linux 命令 | 4 | chmod 权限计算器、命令速查、命令解析、crontab 生成器 |
 | SQL 辅助 | 3 | SQL 语句辅助、格式化美化、建表语句生成 |
 | 综合工具 | 6 | HEX 差异 / Dump、表达式计算、批量计算台、量纲校验台、测试记录、设置与备份 |
+
+### v0.4.0 双协议深化（IEC 104 点位 + MODBUS 发送计算）
+
+- **IEC 104 四遥点位计算器**：内置 SmartLogger V300R024C10SPC275《IEC104 转发协议接口描述》整理的 **40 张设备表 / 5561 条点位**，支持全文秒搜（信号名、单位、状态、备注、设备型号别名）、点号 ⇄ 信息体地址 IOA 正反算、所属转发设备反查、四遥 ASDU 组包（短浮点遥测 / 单点遥信 / 单点遥控 / 短浮点遥调）。
+- **点表导入**：桌面版经本机 `/api/points/xlsx` 直接导入 `.xlsx` 原表（Go 标准库 `archive/zip` + `encoding/xml` 解析，Windows / macOS 行为一致）；网页预览支持 CSV / TSV / JSON 点表（兼容 xlsx 另存的四遥分区布局与扁平表头），导入结果本机持久化，可导出为 CSV 或一键恢复内置点表。
+- **MODBUS TCP / RTU 报文发送计算**：请求组包覆盖 01 / 02 / 03 / 04 / 05 / 06 / 0F / 10，自动计算 MBAP 长度或追加 CRC16；写入值按 uint16 / int16 / uint32 / int32 / float32 / ASCII + 4 种字节序 + 系数 / 偏移反算原码；响应解码支持寄存器、线圈位串、异常码与工程值换算，并可一键送入「设备联调」实际收发。
+- **协议联动修复**：修正 MODBUS TCP 长度字段校验（应为 UID + FUNC + DATA，旧版会误判所有合法帧）、IEC 104 S 帧误报「ASDU 过短」、U 帧 STARTDT / STOPDT / TESTFR 解码错误；补 TI=13 解析，让新组包的 SmartLogger 报文可直接粘进「IEC 104」解析器。
+- **官网**：下载区改为 Windows / macOS 双平台卡片，两个按钮都指向 latest Release 附件，并附系统要求与未公证处理说明。
+
+> ⚠️ 点表依据文档中的四遥基地址（遥信 `0001H` / 遥测 `4001H` / 遥控 `6001H` / 遥调 `6201H`）与示例转发设备配置，现场配置可能不同。遥测类型标识在文档中为 **TI=13**，标准 IEC 104 为 **TI=7**，组包前请按主站实际规约选择。点表为事实性点位清单整理，仅供现场核对；正式工程以设备厂商随附文档为准，仓库不分发原始厂商文档。
 
 ### v0.3.0 桌面化闭环
 
@@ -55,7 +65,7 @@ xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app
 - **主题与无障碍**：主题支持「跟随系统 / 深色 / 浅色」三态并实时响应系统偏好变化；补齐 `:focus-visible` 键盘焦点环，尊重 `prefers-reduced-motion`。
 - **macOS 原生版**：新增 `webview_darwin.go`（`webview_go` + 系统 WKWebView），GitHub Actions 用 Intel / Apple Silicon 两个 runner 分别编译后 `lipo` 成通用二进制，打包 `EnergyTestToolbox.app` 并 ad-hoc 签名；`flock` 文件锁实现单实例，多尺寸 `app.icns` 图标与固定 `CFBundleIdentifier`。Windows 侧仍是纯 Go、无 CGo，不受影响。
 - **固定服务端口**：内置服务优先复用上次端口（默认 `39017`）。此前每次启动随机端口，而 `localStorage` 按 origin（含端口）分区，收藏 / 记录会「看似丢失」；现在「设置与备份 → 运行环境」可查看真实平台、数据目录、端口与窗口形态。
-- **质量**：`test.settings.mjs` 扩展到 48 条（含 macOS 平台资产选择、运行环境、退出按钮），DOM 桩补齐 `Storage.length / key / removeItem / clear`；Go 层新增端口复用 / 环境接口 / 跨站拒绝断言；全套回归 62 模块、双主题探针 62×2。
+- **质量**：`test.settings.mjs` 扩展到 48 条（含 macOS 平台资产选择、运行环境、退出按钮），DOM 桩补齐 `Storage.length / key / removeItem / clear`；Go 层新增端口复用 / 环境接口 / 跨站拒绝断言；全套回归 63 模块、双主题探针 63×2。
 
 > ⚠️ 升级提示：v0.3.0 首次启动会使用新的固定数据目录与固定端口。旧数据仍在 `%APPDATA%\<旧文件名>` 的旧 WebView2 profile、以及旧随机端口对应的 origin 下 —— 请先用旧版导出备份，再在新版「设置与备份」里导入恢复。macOS 版首次运行前请先看上面的签名说明。
 
@@ -124,8 +134,10 @@ python scripts/verify_icns.py              # 校验 macOS 图标的 6 个尺寸�
 ├── api_device.go              设备联调本机 API
 ├── api_update.go              更新查询 / 下载 / SHA256 校验 / 定位（按平台挑附件）
 ├── rsrc_windows_amd64.syso    PE 图标 / manifest 资源
+├── api_points.go               /api/points/xlsx 本机点表导入（Go 标准库解析）
 ├── assets/                    图标与 Info.plist（app.ico / app.icns / app.manifest / Info.plist）
 ├── scripts/build-macos.sh     macOS .app 组装（lipo / codesign / ditto）
+├── scripts/extract_iec104_points.py   从 SmartLogger 点表抽取前端数据
 ├── src/
 │   ├── index.html             静态顶栏 + 脚本入口
 │   ├── app.js                 路由、分类渲染、主题、搜索
@@ -133,7 +145,8 @@ python scripts/verify_icns.py              # 校验 macOS 图标的 6 个尺寸�
 │   ├── utils/modules.js       声明式模块注册表 + SVG 构建器
 │   ├── utils/units.js         统一量纲层
 │   ├── utils/bus.js           结果总线 + 本机测试记录
-│   └── modules/               62 个工具模块（按分类分目录）
+│   ├── data/iec104-points.js  内置 IEC104 四遥点表（40 表 / 5561 点）
+│   └── modules/               63 个工具模块（按分类分目录）
 ├── docs/                      官网静态站（GitHub Pages 发布）
 │   ├── index.html
 │   └── assets/                图标与 6 张真实应用截图
@@ -150,16 +163,18 @@ python scripts/verify_icns.py              # 校验 macOS 图标的 6 个尺寸�
 
 | 脚本 | 作用 | 当前结果 |
 | --- | --- | --- |
-| `node scripts/verify.mjs` | 全模块注册 + 渲染 | 62 / 62 通过 |
+| `node scripts/verify.mjs` | 全模块注册 + 渲染 | 63 / 63 通过 |
 | `node scripts/test.interact.mjs` | 模拟点击 / 输入的交互逻辑 | 20 / 20 通过 |
 | `node scripts/test.boot.mjs` | 按 index.html 顺序加载**含 app.js** 的全部脚本，验证应用启动渲染 | 0 失败 |
 | `node scripts/test.formulas.mjs` | 计算类模块的数值标准答案（golden case） | 55 / 55 通过 |
 | `node scripts/check-syntax.mjs` | 全脚本语法 + `T.util.*` 命名空间误用静态防线 | 0 失败 |
 | `node scripts/check-docs.mjs` | 模块计数 / 版本号 / 脚本引入的跨文档一致性 | 通过 |
-| `node scripts/check-light-theme.mjs` | 真实 Chromium 逐模块渲染 dark + light，检测文字对比度 | 62×2 全通过 |
+| `node scripts/check-light-theme.mjs` | 真实 Chromium 逐模块渲染 dark + light，检测文字对比度 | 63×2 全通过 |
 | `node scripts/test.units.mjs` | 量纲层：换算 / 仿射温标 / 功率三角形 / 混用拦截 | 38 / 38 通过 |
 | `node scripts/test.bus.mjs` | 结果总线：发布 / 引用 / 单位换算 / 端到端串联 / 测试记录 | 27 / 27 通过 |
 | `node scripts/test.settings.mjs` | 主题三态 / 备份导出与覆盖恢复 / 运行环境 / macOS 平台资产 / 更新下载校验闭环 | 48 / 48 通过 |
+| `node scripts/test.iec104points.mjs` | 四遥点表 / 点号与 IOA 正反算 / 全文检索 / ASDU 组包 / CSV 点表导入 | 84 / 84 通过 |
+| `node scripts/test.modbus.mjs` | MODBUS 组包 / CRC / MBAP / 编解码 / 工程值 / IEC104 解析器联动修复 | 68 / 68 通过 |
 | `python scripts/verify_syso.py` | 校验已提交的 PE 资源对象（CI 无 exe 时用） | 通过 |
 | `python scripts/verify_icns.py` | 校验 macOS `app.icns` 的 6 个尺寸与条目结构 | 通过 |
 | `python scripts/verify_icon.py` | 校验 exe 的 PE 资源含 RT_ICON / RT_GROUP_ICON / RT_MANIFEST | 通过 |
@@ -198,8 +213,8 @@ python scripts/verify_icns.py              # 校验 macOS 图标的 6 个尺寸�
 
 - Windows 与 macOS 功能完全一致；差异仅在窗口壳与打包形态。macOS 由 CI 的 macOS runner 编译（本机 Windows 无法编译 CGo 的 WKWebView 绑定），纯 Go 版 macOS 二进制可作为无 Xcode 环境的降级形态。
 - macOS 版未做 Apple 开发者签名 / 公证，首次打开需右键 → 打开；串口与 TCP 真实设备联调仍建议现场复验。
-- 设计文档见 [`design.md`](design.md)，与本文档的模块计数保持一致（62 个工具 / 10 个分类）。
+- 设计文档见 [`design.md`](design.md)，与本文档的模块计数保持一致（63 个工具 / 10 个分类）。
 - 所有计算均在本地完成，不上传任何输入数据。
-- 版本号以 [`src/version.js`](src/version.js) 为唯一来源（当前 `v0.3.0`），应用内「⟳ 更新」可检查 GitHub 最新版本，桌面版还能在「设置与备份」里下载并校验更新包。
+- 版本号以 [`src/version.js`](src/version.js) 为唯一来源（当前 `v0.4.0`），应用内「⟳ 更新」可检查 GitHub 最新版本，桌面版还能在「设置与备份」里下载并校验更新包。
 - 每次 Release 附带 `SHA256SUMS.txt`，下载后建议核对哈希；未签名 exe 首次运行可能触发 Windows SmartScreen 提示。
 - 许可证：[MIT](LICENSE) · 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md) · 更新日志：[CHANGELOG.md](CHANGELOG.md) · 问题反馈：[Issues](https://github.com/code-outpost/energy-test-toolbox/issues)

@@ -10,6 +10,11 @@ node_modules/
 *.tmp
 *.exe~          # Go 链接器覆盖正在运行的 exe 时留下的旧版备份
 
+# 厂商原始接口文档不随公开仓库分发（版权与分发范围由设备厂商界定）。
+# 结构化点位清单已抽取为 src/data/iec104-points.js 随源码入库；
+# 复现抽取需在本机放置原表后运行 scripts/extract_iec104_points.py。
+SmartLogger*.xlsx
+
 # CI 构建产物（由 Actions 生成，不入库）
 EnergyToolbox.exe
 EnergyToolbox.app/

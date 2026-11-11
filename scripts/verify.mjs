@@ -36,7 +36,7 @@ for (const d of ['src/modules']) {
   }
 }
 // 共享基础层必须在最前（模块文件会引用 TB / TB.units / TB.bus）
-const shared = ['src/utils/modules.js', 'src/utils/units.js', 'src/utils/bus.js'];
+const shared = ['src/utils/modules.js', 'src/utils/units.js', 'src/utils/bus.js', 'src/data/iec104-points.js'];
 const allFiles = [...shared, ...files.filter(f => !f.startsWith('src/utils/'))];
 
 let loadErr = 0;

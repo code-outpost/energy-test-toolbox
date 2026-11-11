@@ -23,7 +23,7 @@
     resistor: '🎨', unitconv: '📐', calc: '🧾',
     'base-convert': '🔢', encoding: '🔤', timestamp: '🕒', endian: '🔁', checksum: '✅',
     chmod: '🔐', 'cmd-ref': '📖', 'cmd-parse': '🧩',
-    iec104: '📡', modbus: '🔌', goose: '⚡', sv: '〰️', dlt645: '💡', dnp3: '🛰️',
+    iec104: '📡', 'iec104-points': '📍', modbus: '🔌', goose: '⚡', sv: '〰️', dlt645: '💡', dnp3: '🛰️',
     iec101103: '📠', cdt: '📺', 'mms-mqtt-opcua': '☁️', 'device-bridge': '🛰️',
     sql: '🗄️', 'sql-format': '📝', 'sql-ddl': '🏗️', hexdiff: '🔍', hexdump: '📋',
     'json-tool': '🧩', 'regex-tester': '🔎', 'color-convert': '🎨', 'text-tool': '📝',

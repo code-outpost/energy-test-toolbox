@@ -247,7 +247,7 @@
         reportBox.innerHTML = '';
         reportBox.appendChild(T.el('div', { class: 'rp-head' }, [
           T.el('h1', { text: '能源测试工具箱 · 批量计算报告' }),
-          T.el('div', { class: 'hint', text: '生成时间：' + nowText() + '　|　工具版本：v' + ((window.TB && TB.VERSION) || '0.3.0') })
+          T.el('div', { class: 'hint', text: '生成时间：' + nowText() + '　|　工具版本：v' + ((window.TB && TB.VERSION) || '0.4.0') })
         ]));
         reportBox.appendChild(T.el('table', { class: 'data-table rp-meta' }, [
           T.el('tr', {}, [T.el('th', { text: '计算模板' }), T.el('td', { text: t.name }), T.el('th', { text: '结果单位' }), T.el('td', { text: t.unit })]),

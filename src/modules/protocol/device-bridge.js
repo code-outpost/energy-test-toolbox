@@ -39,7 +39,11 @@
     tcp: [
       { n: 'IEC 104 STARTDT 启动帧', h: '68 04 07 00 00 00' },
       { n: 'IEC 104 总召唤 (C_IC_NA_1)', h: '68 0E 00 00 00 00 64 01 06 00 01 00 00 00 00 14' },
-      { n: 'Modbus TCP 读保持寄存器', h: '00 01 00 00 00 06 01 03 00 00 00 0A' },
+      { n: 'Modbus TCP 读保持寄存器 (03)', h: '00 01 00 00 00 06 01 03 00 00 00 0A' },
+      { n: 'Modbus TCP 写单寄存器 (06)', h: '00 02 00 00 00 06 01 06 00 00 00 64' },
+      { n: 'Modbus TCP 写单线圈 ON (05)', h: '00 03 00 00 00 06 01 05 00 00 FF 00' },
+      { n: 'Modbus TCP 写多寄存器 (10)', h: '00 04 00 00 00 0B 01 10 00 00 00 02 04 00 0A 01 2C' },
+      { n: 'Modbus TCP 写多线圈 (0F)', h: '00 05 00 00 00 08 01 0F 00 00 00 08 01 0F' },
       { n: '自定义报文', h: '' }
     ],
     serial: [
@@ -218,6 +222,21 @@
       }
 
       syncMode();
+      // 承接来自「MODBUS TCP/RTU 报文计算」的「送入设备联调」报文（5 分钟内有效）
+      try {
+        const raw = localStorage.getItem('tb_bridge_frame');
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p && p.hex && Date.now() - (p.at || 0) < 5 * 60 * 1000) {
+            modeSel.value = p.mode || 'modbus';
+            syncMode();
+            hexInput.value = p.hex;
+            log('已载入报文计算工具生成的请求：' + p.hex);
+            setResp([T.el('div', { class: 'hint', text: '已自动填入待发送报文，确认连接参数后点「发送并接收」。' })]);
+          }
+          if (localStorage.removeItem) localStorage.removeItem('tb_bridge_frame');
+        }
+      } catch (e) { /* 网页预览 / 存储不可用时忽略 */ }
       if (typeof fetch === 'function') {
         fetch('/api/device/ping').then(r => r.json()).then(j => setEnv(!!j.ok, 'API 未响应')).catch(() => setEnv(false, '本机 API 不可用'));
       } else {

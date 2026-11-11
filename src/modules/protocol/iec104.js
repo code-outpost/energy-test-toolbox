@@ -22,6 +22,7 @@
     7: { name: 'M_ME_NC_1 遥测-浮点', kind: 'mef' },
     8: { name: 'M_IT_NA_1 累计量', kind: 'it' },
     9: { name: 'M_ME_ND_1 遥测-规一化(无品质)', kind: 'mea2' },
+    13: { name: '测量值-短浮点（SmartLogger 文档 / 101 体系编号，值格式同 TI=7）', kind: 'mef' },
     30: { name: 'M_SP_TB_1 单点遥信(时标)', kind: 'sp', time: true },
     31: { name: 'M_DP_TB_1 双点遥信(时标)', kind: 'dp', time: true },
     34: { name: 'M_ME_TD_1 遥测-规一化(时标)', kind: 'mea', time: true },
@@ -116,11 +117,17 @@
       res.frameType = 'S'; res.recvSeq = (C[2] | (C[3] << 8)) & 0x7fff;
     } else {
       res.frameType = 'U';
-      const f = C[0] & 0x07, act = (C[0] >> 3) & 1, con = (C[0] >> 4) & 1;
-      res.uFunc = ({ 1: 'STARTDT', 2: 'STOPDT', 4: 'TESTFR' })[f] || ('0x' + f.toString(16));
-      res.uAct = act; res.uCon = con;
+      // U 帧控制域首字节高 6 位编码功能：1=STARTDT act / 2=STARTDT con /
+      // 4=STOPDT act / 8=STOPDT con / 16=TESTFR act / 32=TESTFR con。
+      // 旧版按低 3 位取值会把 68 04 07 00 00 00 误显示成「0x7」。
+      const code = C[0] >> 2;
+      const UMAP = { 1: 'STARTDT act', 2: 'STARTDT con', 4: 'STOPDT act', 8: 'STOPDT con', 16: 'TESTFR act', 32: 'TESTFR con' };
+      res.uFunc = UMAP[code] || ('0x' + code.toString(16));
+      res.uAct = (code === 1 || code === 4 || code === 16);
+      res.uCon = (code === 2 || code === 8 || code === 32);
     }
-    if (res.frameType === 'I' || res.frameType === 'S') {
+    // 只有 I 帧携带 ASDU；S 帧仅 6 字节确认帧，强行解析会误报「ASDU 过短」。
+    if (res.frameType === 'I') {
       const a = parseASDU(asdu);
       if (!a.ok) return { ok: false, err: 'ASDU: ' + a.err };
       res.asdu = a;
@@ -178,7 +185,7 @@
         const ov = T.el('div', { class: 'kv' });
         ov.appendChild(T.el('div', { class: 'k', text: '起始字节' })); ov.appendChild(T.el('div', { class: 'v', text: '0x68' }));
         ov.appendChild(T.el('div', { class: 'k', text: '长度 L' })); ov.appendChild(T.el('div', { class: 'v', text: String(res.L) + ' (控制域4 + ASDU ' + (res.L - 4) + ')' }));
-        ov.appendChild(T.el('div', { class: 'k', text: '帧类型' })); ov.appendChild(T.el('div', { class: 'v', text: res.frameType + (res.frameType === 'U' ? ' (' + res.uFunc + (res.uAct ? ' act' : res.uCon ? ' con' : '') + ')' : '') }));
+        ov.appendChild(T.el('div', { class: 'k', text: '帧类型' })); ov.appendChild(T.el('div', { class: 'v', text: res.frameType + (res.frameType === 'U' ? ' (' + res.uFunc + ')' : '') }));
         if (res.frameType === 'I') {
           ov.appendChild(T.el('div', { class: 'k', text: '发送序号' })); ov.appendChild(T.el('div', { class: 'v', text: String(res.sendSeq) }));
           ov.appendChild(T.el('div', { class: 'k', text: '接收序号' })); ov.appendChild(T.el('div', { class: 'v', text: String(res.recvSeq) }));
@@ -228,7 +235,13 @@
         out
       ]));
 
-      input.value = hx(buildSample());
+      // 由「IEC 104 四遥点位计算器」组包后跳转过来时，自动载入待解析报文
+      let pending = '';
+      try {
+        pending = localStorage.getItem('tb_iec104_frame') || '';
+        if (pending && localStorage.removeItem) localStorage.removeItem('tb_iec104_frame');
+      } catch (e) { pending = ''; }
+      input.value = pending || hx(buildSample());
       input.dispatchEvent(new Event('input'));
     }
   });

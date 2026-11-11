@@ -12,7 +12,7 @@
     <div class="brand">
       <span class="logo" aria-hidden="true">⚡</span>
       <span>能源测试工具箱</span>
-      <button id="appVersion" class="ver-badge" title="点击查看更新" aria-label="当前版本，点击检查更新">v0.3.0</button>
+      <button id="appVersion" class="ver-badge" title="点击查看更新" aria-label="当前版本，点击检查更新">v0.4.0</button>
     </div>
     <div class="top-actions">
       <input id="globalSearch" class="search" type="search" aria-label="搜索工具" placeholder="搜索工具（/ 或 Ctrl+K）..." />
@@ -33,6 +33,8 @@
   <!-- 共享基础层：统一量纲 / 跨工具结果总线 / 测试记录 -->
   <script src="utils/units.js"></script>
   <script src="utils/bus.js"></script>
+  <!-- 内置 IEC104 四遥点表（SmartLogger 接口描述整理，供点位计算器检索） -->
+  <script src="data/iec104-points.js"></script>
   <!-- 计算器共享引擎 -->
   <script src="modules/calculator/engine.js"></script>
   <!-- 计算器套件 -->
@@ -75,6 +77,7 @@
   <script src="modules/linux/crontab.js"></script>
   <!-- 协议报文解析 -->
   <script src="modules/protocol/iec104.js"></script>
+  <script src="modules/protocol/iec104-points.js"></script>
   <script src="modules/protocol/modbus.js"></script>
   <script src="modules/protocol/goose.js"></script>
   <script src="modules/protocol/sv.js"></script>

@@ -59,6 +59,10 @@ jobs:
         run: node scripts/test.bus.mjs
       - name: Settings / backup / theme / platform / update flow
         run: node scripts/test.settings.mjs
+      - name: IEC 104 four-telemetry point calculator
+        run: node scripts/test.iec104points.mjs
+      - name: MODBUS TCP/RTU frame builder + IEC 104 parser linkage
+        run: node scripts/test.modbus.mjs
       - name: Cross-document consistency
         run: node scripts/check-docs.mjs
       - name: PE resource object is present
@@ -119,6 +123,8 @@ jobs:
           node scripts/test.interact.mjs
           node scripts/test.formulas.mjs
           node scripts/test.settings.mjs
+          node scripts/test.iec104points.mjs
+          node scripts/test.modbus.mjs
 
       - name: Hash artifact
         shell: pwsh

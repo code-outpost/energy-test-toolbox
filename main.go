@@ -95,6 +95,7 @@ func startServer() (string, error) {
 	mux := http.NewServeMux()
 	registerAppAPI(mux)    // /api/app/* 平台信息 / 优雅退出
 	registerDeviceAPI(mux) // /api/device/* 仅本机可访问
+	registerPointsAPI(mux) // /api/points/xlsx 本机点表导入（纯内存解析）
 	registerUpdateAPI(mux) // /api/update/* 仅用户主动检查更新时联网
 	mux.Handle("/", http.FileServer(http.FS(sub)))
 	srv := &http.Server{Handler: mux}
