@@ -30,7 +30,7 @@
     'base64-url': '🔗', passgen: '🔑',
     'unit-converter': '🔄', 'income-tax': '💴', mortgage: '🏠', bmi: '⚖️', geometry: '📐', 'random': '🎲',
     'hv-transformer': '🔧', 'hv-motor': '⚙️', 'hv-reactance': '🌊', 'hv-safety': '🛡️', 'hv-ampacity': '🔌', 'hv-cheatsheet': '📘',
-    'batch-calc': '📊', crontab: '⏰'
+    'batch-calc': '📊', crontab: '⏰', settings: '⚙️'
   };
   const iconOf = (m) => m.icon || ICONS[m.id] || '🔧';
 
@@ -65,14 +65,44 @@
   TB.toast = toast; // 供模块提示（如跨工具引用结果）
   let currentBody = null;
 
-  // ---- 主题 ----
-  const savedTheme = localStorage.getItem('tb_theme') || 'dark';
-  document.body.setAttribute('data-theme', savedTheme);
+  // ---- 主题：跟随系统 / 深色 / 浅色 三态 ----
+  const THEME_MODES = ['auto', 'dark', 'light'];
+  const THEME_LABEL = { auto: '🖥 跟随', dark: '🌙 深色', light: '☀️ 浅色' };
+  function systemDark() {
+    try { return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+    catch (e) { return true; }
+  }
+  function themeMode() { return localStorage.getItem('tb_theme') || 'auto'; }
+  function applyTheme() {
+    const mode = themeMode();
+    const resolved = mode === 'auto' ? (systemDark() ? 'dark' : 'light') : (mode === 'light' ? 'light' : 'dark');
+    document.body.setAttribute('data-theme', resolved);
+    if (themeToggle) {
+      themeToggle.textContent = THEME_LABEL[mode] || THEME_LABEL.auto;
+      themeToggle.setAttribute('title', '当前：' + (THEME_LABEL[mode] || '').replace(/^\S+\s*/, '') + '（点击切换）');
+      themeToggle.setAttribute('aria-label', '切换主题，当前' + (THEME_LABEL[mode] || '').replace(/^\S+\s*/, ''));
+    }
+  }
+  TB.getThemeMode = themeMode;
+  TB.setTheme = function (mode) {
+    if (THEME_MODES.indexOf(mode) < 0) return;
+    try { localStorage.setItem('tb_theme', mode); } catch (e) {}
+    applyTheme();
+  };
+  applyTheme();
   themeToggle.addEventListener('click', () => {
-    const t = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    document.body.setAttribute('data-theme', t);
-    localStorage.setItem('tb_theme', t);
+    const next = THEME_MODES[(THEME_MODES.indexOf(themeMode()) + 1) % THEME_MODES.length];
+    TB.setTheme(next);
   });
+  // 系统偏好变化时，只有「跟随系统」模式自动响应。
+  try {
+    if (window.matchMedia) {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const onChange = () => { if (themeMode() === 'auto') applyTheme(); };
+      if (mq.addEventListener) mq.addEventListener('change', onChange);
+      else if (mq.addListener) mq.addListener(onChange);
+    }
+  } catch (e) {}
 
   // ---- 版本与更新检查 ----
   if (versionEl) { versionEl.textContent = 'v' + VERSION; versionEl.addEventListener('click', checkUpdate); }
@@ -82,18 +112,31 @@
   async function checkUpdate() {
     if (typeof fetch !== 'function') { toast('当前环境不支持联网检查更新', 'warn'); return; }
     toast('正在检查更新…');
+    let info = null;
+    // 桌面版优先走本机后端（能顺带拿到附件地址与哈希清单）；浏览器版自动回退直连 GitHub API。
     try {
-      const r = await fetch(RELEASE.apiUrl || '', { headers: { Accept: 'application/vnd.github+json' } });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json();
-      const latest = String(j.tag_name || '').replace(/^v/, '');
-      if (latest && latest !== VERSION) {
-        toast('发现新版本 v' + latest + '，请到 GitHub Releases 下载（' + (RELEASE.latestUrl || '') + '）', 'ok');
-      } else {
-        toast('已是最新版本 v' + VERSION, 'ok');
+      const r = await fetch('/api/update/latest', { headers: { Accept: 'application/json' } });
+      if (r.ok) {
+        const j = await r.json();
+        if (j && j.ok && j.tag) info = j;
       }
-    } catch (e) {
-      toast('检查更新失败（离线可忽略）：' + (e && e.message ? e.message : e), 'warn');
+    } catch (e) {}
+    if (!info) {
+      try {
+        const r = await fetch(RELEASE.apiUrl || '', { headers: { Accept: 'application/vnd.github+json' } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const j = await r.json();
+        info = { tag: String(j.tag_name || ''), version: String(j.tag_name || '').replace(/^v/, ''), assetUrl: '', sumsUrl: '' };
+      } catch (e) {
+        toast('检查更新失败（离线可忽略）：' + (e && e.message ? e.message : e), 'warn');
+        return;
+      }
+    }
+    TB.updateInfo = info;
+    if (info.version && info.version !== VERSION) {
+      toast('发现新版本 ' + info.tag + '：桌面版可在「设置与备份」一键下载并校验 SHA256，或到 ' + (RELEASE.latestUrl || '') + ' 手动下载', 'ok');
+    } else {
+      toast('已是最新版本 v' + VERSION, 'ok');
     }
   }
 

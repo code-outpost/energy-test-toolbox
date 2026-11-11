@@ -1,7 +1,23 @@
 # 能源开发测试工具箱 · 设计方案
 
-> 版本：v3.9（v0.2.0 工程化深化：统一量纲层、跨工具结果串联、报表深化、工程校核；61 工具 / 10 分类；macOS 暂 deferred）
-> 日期：2026-11-04（2026-11-05 切换为 Go 壳；2026-11-06 交付 exe；2026-11-07 二次修复重新出包；2026-11-08 两栏布局 + 开发常用 / 高压电工 / 科技感主题 + 日常工具；2026-11-09 图标 + GitHub + 官网）
+> 版本：v4.1（v0.3.0 桌面化闭环 + macOS 原生版：固定数据目录、全局备份恢复、单实例、更新下载校验、主题无障碍、WKWebView 通用 .app、固定服务端口；62 工具 / 10 分类；Windows / macOS 双平台）
+> 日期：2026-11-04（2026-11-05 切换为 Go 壳；2026-11-06 交付 exe；2026-11-07 二次修复重新出包；2026-11-08 两栏布局 + 开发常用 / 高压电工 / 科技感主题 + 日常工具；2026-11-09 图标 + GitHub + 官网；2026-11-11 桌面化闭环 + macOS 版）
+>
+> **v4.1（2026-11-11）macOS 原生版 + 数据可靠性修正**
+> - **macOS 窗口落地**：历史卡点是 `github.com/webview/webview` 不再是可解析的 Go 包。改用维护中的 `github.com/webview/webview_go`（darwin 后端用 ObjC runtime 调用 Cocoa / WKWebView，`-framework WebKit`），新增 `webview_darwin.go`（`darwin && cgo`）。Windows 仍走 go-webview2 纯 Go，`CGO_ENABLED=0` 构建不受影响。
+> - **双架构通用包**：`github.com/webview/webview_go` 需本机 Xcode CLT，Windows 无法交叉编译 CGo，因此 CI 用 `macos-15-intel` / `macos-15` 两个 runner 分别产出 amd64 / arm64，再由 `scripts/build-macos.sh` 用 `lipo` 合成 universal binary，组装 `EnergyTestToolbox.app`（固定 `CFBundleIdentifier`、6 尺寸 `app.icns`、ad-hoc codesign）并 zip 发布。
+> - **纯 Go 降级路径**：`webview_darwin_nocgo.go`（`darwin && !cgo`）在无 Xcode / 交叉编译场景下用 Chromium `--app` 无地址栏窗口或系统浏览器，配合 `/api/app/quit` 优雅退出；本地 Windows 可交叉编译并验证两个 darwin 架构，CI `verify` job 也纳入该检查。
+> - **数据可靠性修正**：发现内置服务用随机端口时，`localStorage` 按 origin（含端口）分区，收藏 / 最近使用 / 中转站 / 测试记录每次启动都会换一份 —— 光固定 WebView2 数据目录并不能解决。`main.go` 改为优先复用上次端口（默认 39017，冲突时顺序退让 8 个备用端口，最后才随机），并把真实平台 / 数据目录 / 端口 / 窗口形态通过 `/api/app/info` 显示在「设置与备份 → 运行环境」。
+> - **单实例与平台感知更新**：macOS 用 `flock` 文件锁（进程崩溃自动释放），第二个实例 `open -a` 激活已有窗口；`api_update.go` 按 `runtime.GOOS` 挑选 `EnergyTestToolbox.exe` 或 `EnergyTestToolbox-macos-universal.zip`，`SHA256SUMS.txt` 改为多平台清单。
+> - **验证**：48/48 设置断言（新增运行环境 / macOS 资产选择 / 退出按钮）、Go 11 组（新增端口复用、环境接口、跨站拒绝）、darwin 双架构纯 Go 编译 + vet、icns 结构校验；原 62 模块 / 数值 / 量纲 / 总线 / 双主题探针全部保持通过。
+>
+> **v4.0（2026-11-11）v0.3.0 桌面化闭环**
+> - **固定数据目录**：`webview_windows.go` 显式设置 `WebViewOptions.DataPath = %APPDATA%\EnergyTestToolbox\WebView2`。库默认按 exe 文件名建目录，导致 `能源测试工具箱.exe` 与 `EnergyTestToolbox.exe` 各存一份收藏 / 历史 / 记录，改名即「数据消失」。新目录与文件名解耦。
+> - **全局备份 / 恢复**：新增 `modules/misc/settings.js`（第 62 个模块，应用级入口而非计算工具）。导出全部 `tb_` 前缀 localStorage 键为带 `app` / `schema` / `version` / `exportedAt` 的 JSON；导入校验应用标识、schema、键前缀、值类型与 4 MB 体积上限，采用覆盖语义（清空现有 `tb_` 键再写入）并自动刷新。DOM 桩补齐 `Storage.length / key / removeItem / clear`。
+> - **单实例与窗口记忆**：`desktop_windows.go` 用 `CreateMutexW` 拦截双开（原双开会产生两个随机端口与两份数据），第二实例通过 `EnumWindows` 按标题前缀定位并 `ShowWindow` + `SetForegroundWindow`；`GetWindowRect` 每 2 秒采样写入 `window.json`，启动时恢复宽高与 `SetWindowPos` 位置。纯 Go syscall，无 CGo。
+> - **更新闭环**：`api_update.go` 提供 `/api/update/latest | download | reveal`。下载按 Release 的 `SHA256SUMS.txt` 逐字节校验，不通过即删文件；外链强制 HTTPS + GitHub 域名白名单且重定向逐跳校验，`reveal` 只允许打开应用下载目录；同源校验兜底。**不自动替换正在运行的 exe**，由用户关闭程序后手动覆盖。仅主动检查更新时联网。
+> - **主题与无障碍**：`app.js` 主题由二态扩为「跟随系统 / 深色 / 浅色」，监听 `prefers-color-scheme`；CSS 补 `:focus-visible` 焦点环、`aria-pressed` 与 `prefers-reduced-motion` 降级。
+> - **验证**：62/62 模块注册渲染、20/20 交互、55/55 数值、38/38 量纲、27/27 结果总线、39/39 设置与备份、boot 0 失败、语法 68 文件 0 失败、Go 单元测试 7 组（含 Win32 单实例）、双主题浏览器探针 62×2 全通过；PE 图标资源校验通过。
 >
 > **v3.9（2026-11-10）v0.2.0 工程化深化**
 > - **统一量纲层**：新增 `src/utils/units.js`，16 个单位族以 SI 基准统一；P / Q / S 拆为独立族，禁止直接相加，按 S = √(P²+Q²) 合成并给出 cosφ；温度按仿射换算（a·v+b），百分比按 0.01 处理。新增「量纲校验台」工具（换算 / 一致性校验 / 功率三角形 / 常见陷阱）。
@@ -28,7 +44,7 @@
 > - **GitHub 发布**：公开仓库 `code-outpost/energy-test-toolbox`，`main` 分支；新增 `README.md`、`dist/EnergyTestToolbox.exe`（下载直链）、`.gitignore`。
 > - **官网**：`docs/index.html` 单文件科技感落地页（10 分类 / 53 工具 / 3 张真实截图 / 架构 / 下载），由 `.github/workflows/pages.yml` 部署至 https://code-outpost.github.io/energy-test-toolbox/ 。
 > - 模块计数未变，仍为 **53 个工具 / 10 大分类**；exe 7,806,976 字节。
-> 形态：**原生桌面应用**（Go + WebView2，Windows 已出包；macOS 待补）
+> 形态：**原生桌面应用**（Go + WebView2 / WKWebView；Windows `.exe` 与 macOS universal `.app` 均已出包）
 >
 > **v3.6（2026-11-08）科技感视觉重构 + 新增"日常工具"分类（6 个非新能源工具）**
 > - **科技感视觉重构（默认深色 HUD / 霓虹）**：`src/assets/css/style.css` 全面重写为设计系统 v5——深色为默认主题（`:root` = 深色，`[data-theme="light"]` 为浅色变体），含：固定层**网格背景 + 双霓虹光晕**（青/紫，缓慢漂移 `gridDrift`）**、玻璃拟态面板**（`backdrop-filter` blur + 半透明）**、**渐变高光顶栏下划线**、**侧边导航激活态左侧渐变光条**、卡片 HUD 四角括号（`.card/.cat-card/.aside-card::before/::after`）、**霓虹发光计算器键帽**（运算符青光、等号渐变发光、显示屏青色数字辉光）。所有既有 class 名保留，布局（两栏 stage）不变。
@@ -57,7 +73,7 @@
 > **v3.2（2026-11-06）交付 Windows exe**
 > - 成功编译 `能源测试工具箱.exe`（~7.2 MB，纯 Go / CGO_ENABLED=0 / GUI 子系统，无 MSVC）。
 > - 构建链：Go 1.23.4 触发工具链自动切换至 1.26（go-webview2 传递依赖要求）；依赖仅 `go-webview2` + `go-winloader` + `x/sys`。
-> - **移除 `webview_darwin.go`**：上游 `github.com/webview/webview` 已不再是可解析的 Go 包（仅剩 C 库），macOS CGO 绑定无法引入；且 macOS 构建需本机 Xcode。故 macOS 支持**暂 defer**，待改用纯 Go 绑定或系统浏览器兜底方案再加。`go mod tidy` 现已干净通过，一键构建可复现。
+> - **移除 `webview_darwin.go`**：上游 `github.com/webview/webview` 已不再是可解析的 Go 包（仅剩 C 库），macOS CGO 绑定无法引入；且 macOS 构建需本机 Xcode。故 macOS 支持**暂 defer**，待改用纯 Go 绑定或系统浏览器兜底方案再加。`go mod tidy` 现已干净通过，一键构建可复现。（**v4.1 已解决**：换用 `webview_go` 并由 macOS CI runner 编译，见文首 v4.1 段落。）
 > - 运行时冒烟测试通过：exe 启动内置 HTTP 服务，`http://127.0.0.1:随机端口/` 返回首页（含模块脚本/样式），证明前端已通过 `//go:embed all:src` 完整打进二进制。
 > - 用户本机出包：`scripts/build-win.ps1`（或 `CGO_ENABLED=0 go build -ldflags "-H windowsgui -s -w" -o 能源测试工具箱.exe .`），需已装 WebView2 运行时（Win10/11 通常自带）。
 >
@@ -92,20 +108,21 @@
 
 | 项 | 选型 | 说明 |
 |---|---|---|
-| 形态 | **Go + WebView2 原生桌面应用** | Windows 出 `.exe`；macOS 出 `.app` |
-| 前端 UI | Web 技术（HTML / CSS / JS） | 声明式模块注册表 + 动态渲染，`go build` 时**整体嵌入二进制** |
-| 桌面壳 | **Go**（纯 Go，无 CGo / 无 MSVC） | 内置静态服务器 + 原生窗口；自带 WebView2Loader（go-winloader） |
+| 形态 | **Go + 系统 WebView 的原生桌面应用** | Windows 出 `.exe`；macOS 出 universal `.app` |
+| 前端 UI | Web 技术（HTML / CSS / JS） | 声明式模块注册表 + 动态渲染，`go build` 时**整体嵌入二进制**，双平台零改动复用 |
+| 桌面壳（Windows） | Go + go-webview2（纯 Go，无 CGo / MSVC） | 系统 Edge WebView2；自带 WebView2Loader（go-winloader） |
+| 桌面壳（macOS） | Go + webview_go（CGo → 系统 WKWebView） | 需 Xcode CLT，由 CI 的 macOS runner 原生编译 |
 | 交付物 | **平台原生可执行程序** | 用户不接触任何 HTML 文件，也没有浏览器地址栏 |
 | 解析模式 | **仅离线**（粘贴 HEX → 结构化解释） | 不做实时抓包 |
-| 离线 | 全部计算在本地完成 | 可完全断网使用 |
-| 构建前提 | **仅需 Go 工具链**（无需 MSVC / VS / CGo） | Windows 包甚至可在 Linux 上纯 Go 交叉编译 |
+| 离线 | 全部计算在本地完成 | 可完全断网使用；仅主动检查更新时联网 |
+| 构建前提 | Windows 仅需 Go；macOS 另需 Xcode CLT | Windows 包可在 Linux 纯 Go 交叉编译；macOS CGo 包必须在 Mac 编译 |
 
-### 2.1 为什么是 Go + WebView2（而不是"网页 / H5"、也不是 Tauri/Rust）
+### 2.1 为什么是 Go + 系统 WebView（而不是"网页 / H5"、也不是 Tauri/Rust）
 
 用户要的是桌面程序，不是网站；同时要求能在本机顺利打包，而 Tauri 的 Rust 后端在本机装 MSVC 生成工具反复失败。因此改用 **Go 作为桌面壳**：
 
 - **UI 用 Web 技术写，但跑在原生窗口里**。Windows 用系统自带的 Edge WebView2，macOS 用系统自带的 WKWebView（Web 前端代码在 `go build` 时通过 `//go:embed` **整体嵌入二进制**，运行时磁盘上不存在独立可见的网页文件，也没有地址栏）——外观与交互都是原生桌面应用（类比 VS Code、Discord 的桌面端）。
-- **完全不需要 MSVC / Visual Studio / CGo**：Go 自带链接器，本机此前就能用 Go 打出 `.exe`（如 NetScan Pro），与此一致；用户本机已具备该能力。
+- **Windows 侧完全不需要 MSVC / Visual Studio / CGo**：Go 自带链接器，本机此前就能用 Go 打出 `.exe`（如 NetScan Pro），与此一致。macOS 侧系统 WebKit 只有 ObjC 接口，改用维护中的 `webview_go` CGo 绑定（而非已废弃的 `webview/webview`），由 CI 的 macOS runner 编译；Windows 的零 CGo 构建链不受影响。
 - go-webview2 通过 **go-winloader 自带内嵌的 `WebView2Loader.dll`**，运行时只需系统已装的 WebView2 运行时（Win10/11 通常预装），无需额外附带任何 DLL 或 SDK。
 - 一套纯 JS 的协议解析前端，跨 Windows / macOS **零改动复用**。
 - 可选能力：后续如需原生文件对话框、系统托盘、本地存储，可用 Go 标准库 / 系统 API 扩展。
@@ -117,9 +134,15 @@
 ```
 D:/小工具/
 ├── go.mod                 # Go 模块定义
-├── main.go                # 桌面壳入口：embed 前端资源 + 内置 HTTP 服务 + 平台分发
-├── webview_windows.go     # Windows 窗口（build tag windows，go-webview2 纯 Go）
-├── webview_darwin.go      # macOS 窗口（build tag darwin，webview/webview + CGo）
+├── main.go                # 桌面壳入口：embed + 内置 HTTP 服务（固定端口）+ 平台分发
+├── webview_windows.go     # Windows 窗口（windows，go-webview2 纯 Go）
+├── webview_darwin.go      # macOS 窗口（darwin && cgo，webview_go + WKWebView）
+├── webview_darwin_nocgo.go# macOS 纯 Go 兜底（darwin && !cgo，独立浏览器窗口）
+├── desktop_darwin.go      # macOS flock 文件锁单实例
+├── api_app.go             # /api/app/info（平台 / 数据目录 / 端口）与退出
+├── api_update.go          # 按平台挑选更新附件 + SHA256 校验
+├── assets/Info.plist      # .app 元数据（固定 bundle id / 本地网络例外）
+├── scripts/build-macos.sh # lipo 通用二进制 + .app 组装 + codesign + zip
 ├── package.json           # 脚本：serve（Web 预览）、build（Go 构建）
 ├── src/                    # 前端 UI 源码（编译时整体嵌入二进制）
 │   ├── index.html
@@ -213,7 +236,7 @@ D:/小工具/
 - **M4（已完成·代码）** SQL 工具组：格式化 / 大小写转换 / 表名·字段提取 / 语法检查（多方言）
 - **M5（基本完成·代码）** 扩展协议已实现（DNP3 / IEC101-103 / CDT / MMS·MQTT·OPC UA 轻量结构解码）；综合工具已完成（HEX 字节级 diff、Hex dump、安全表达式计算）；报告导出（CSV）与最终打包打磨待收尾
 
-> 当前共 **61 个工具模块**（计算器 10 + 协议报文解析 10 + 高压电工 7 + 日常工具 6 + 开发常用 6 + 电力计算 5 + 通用编解码 5 + Linux 命令 4 + SQL 辅助 3 + 综合工具 5）。所有模块均通过 `scripts/verify.mjs`（DOM 桩）冒烟验证：注册成功且默认样本走通解析渲染；计算类另由 `scripts/test.formulas.mjs` 校验标准答案。
+> 当前共 **62 个工具模块**（计算器 10 + 协议报文解析 10 + 高压电工 7 + 日常工具 6 + 开发常用 6 + 电力计算 5 + 通用编解码 5 + Linux 命令 4 + SQL 辅助 3 + 综合工具 6）。所有模块均通过 `scripts/verify.mjs`（DOM 桩）冒烟验证：注册成功且默认样本走通解析渲染；计算类另由 `scripts/test.formulas.mjs` 校验标准答案。
 
 ---
 
@@ -227,9 +250,9 @@ D:/小工具/
 ## 7. 构建与分发（重要）
 
 ### 7.1 本地构建前置
-- **Go 工具链 ≥ 1.23**（唯一硬性要求，无需 MSVC / VS / CGo）。本机此前已用 Go 打包过 `.exe`（如 NetScan Pro），即在 `PATH` 或 `~\go\bin`、`~\buildcache\go_extract\go\bin` 下。新机器从 https://go.dev/dl 安装并勾选加入 PATH 即可。
-- **Windows**：系统自带的 **WebView2 运行时**（Win10/11 通常预装；已确认本机为 136.x）。go-webview2 通过 go-winloader **自带内嵌 `WebView2Loader.dll`**，无需额外附带任何 DLL 或 SDK。
-- **macOS**：Xcode Command Line Tools（`xcode-select --install`），Web 窗口走系统 WebKit（CGO，Mac 自带 clang）。
+- **Go 工具链 ≥ 1.25**（`go.mod` 声明 1.25.0）。本机此前已用 Go 打包过 `.exe`（如 NetScan Pro），即在 `PATH` 或 `~\go\bin`、`~\buildcache\go_extract\go\bin` 下。新机器从 https://go.dev/dl 安装并勾选加入 PATH 即可。
+- **Windows**：系统自带的 **WebView2 运行时**（Win10/11 通常预装；已确认本机为 136.x）。go-webview2 通过 go-winloader **自带内嵌 `WebView2Loader.dll`**，无需额外附带任何 DLL 或 SDK；全程无 MSVC / VS / CGo。
+- **macOS**：Xcode Command Line Tools（`xcode-select --install`），`webview_go` 通过 CGo 链接系统 WebKit（`-framework WebKit`），Mac 自带 clang。未装 Xcode 时仍可用纯 Go 兜底形态（`GOOS=darwin CGO_ENABLED=0`），但窗口会退化为独立浏览器窗口。
 - **不再需要** Visual Studio / MSVC / Rust / Tauri——这是相对上一版（Tauri/Rust 方案）的最大改动，直接解决"MSVC 安装反复失败、打不出包"的问题。
 
 > **沙箱现已可复现出包（已验证）**：早期认为出网代理会把大文件截断在约 80MB、而 Go 完整包约 145MB 故无法在沙箱装 Go；但实测 **Windows Go 1.26.10 压缩包约 71.5MB（< 80MB 上限，单请求即可下载）**，配合 `GOPROXY=https://goproxy.cn,direct` 拉取依赖，`CGO_ENABLED=0 GOOS=windows go build -ldflags "-H windowsgui -s -w"` 即可在沙箱直接编译出 `能源测试工具箱.exe`（已多次成功）。本机出包仍可用 `scripts/build-win.ps1` 一键完成（需已装 WebView2 运行时）。
@@ -243,18 +266,22 @@ D:/小工具/
 
 **macOS（已装 Xcode CLT）**：
 ```bash
-go mod tidy
-go build -o EnergyToolbox.app/Contents/MacOS/EnergyToolbox .
+scripts/build-macos.sh          # 当前架构 CGO_ENABLED=1 → dist/EnergyTestToolbox-macos-universal.zip
+# CI 双架构：
+scripts/build-macos.sh /path/to/etb-arm64 /path/to/etb-amd64   # lipo 合成 universal
 ```
-- 无需任何 MSVC / VS / Rust；`npm` 仅用于开发期 Web 预览（`npm run serve` 起一个本地静态服务器看效果），**构建 exe/app 完全不依赖 Node**。
-- 图标：已在 v3.7 落地——`assets/app.ico`（七尺寸）+ `assets/app.manifest` 经 `rsrc` 编为 `rsrc_windows_amd64.syso`，Go 链接器自动嵌入 exe 的 PE 资源；`src/assets/favicon.ico` 随 `//go:embed all:src` 作为窗口页 favicon。重新生成见 `README.md`「重新生成图标」，校验用 `python scripts/verify_icon.py`。
+- Windows 无需任何 MSVC / VS / Rust；`npm` 仅用于开发期 Web 预览（`npm run serve` 起一个本地静态服务器看效果），**构建 exe/app 完全不依赖 Node**。
+- 图标：`scripts/make_icon.py` 一次生成 `assets/app.ico`（七尺寸，经 `rsrc` 编为 `rsrc_windows_amd64.syso` 嵌入 PE）与 `assets/app.icns`（六尺寸，装入 `.app/Contents/Resources`）；`src/assets/favicon.ico` 随 `//go:embed all:src` 作为窗口页 favicon。校验分别用 `python scripts/verify_icon.py` 与 `python scripts/verify_icns.py`。
+- `.app` 元数据在 `assets/Info.plist`：固定 `CFBundleIdentifier = cn.code-outpost.energytesttoolbox`（WKWebView 存储按此隔离）、`NSAllowsLocalNetworking`（允许访问内置 127.0.0.1 服务）、最低系统 11.0。打包脚本做 ad-hoc 签名，避免 Gatekeeper 直接判「已损坏」。
 
 ### 7.3 跨平台 CI 自动构建
-- `.github/workflows/build.yml`（GitHub Actions）：
-  - **Windows 包在 `ubuntu-latest` 上纯 Go 交叉编译**（`CGO_ENABLED=0 GOOS=windows`），**完全不需要 MSVC / Windows 机器 / VS**——这正是相对 Tauri 方案的巨大优势。
-  - macOS 包在 `macos-latest` 上构建（CGO，Mac 自带 clang）。
-  - 两个 job 分别上传 `EnergyToolbox.exe` 与 `EnergyToolbox.app` 产物。
-- 触发方式：推送 `v*` 标签，或在 Actions 页手动 `workflow_dispatch`。
+- `.github/workflows/build.yml` 五段式流水线：
+  - `verify`（ubuntu）：全套前端回归 + `go test ./...` + darwin 双架构纯 Go 交叉编译 / vet + icns / syso 校验。
+  - `build-windows`（windows-latest）：`CGO_ENABLED=0` 出 `EnergyTestToolbox.exe`，PE 图标校验，产出 `SHA256SUMS-windows.txt`。
+  - `build-macos`（matrix：`macos-15-intel` / `macos-15`）：各自 `CGO_ENABLED=1` 原生编译 amd64 / arm64，规避 Windows 无法交叉编译 CGo 的限制。
+  - `package-macos`（macos-15）：`lipo` 合成 universal、`Info.plist` + `app.icns` 组装 `.app`、ad-hoc `codesign`、`ditto` 打 zip，产出 `SHA256SUMS-macos.txt`。
+  - `publish`（ubuntu）：合并两份哈希为多平台 `SHA256SUMS.txt`，`sha256sum -c` 校验后统一发布 Release，并把 exe 镜像回写 `dist/`。
+- 触发方式：推送 `v*` 标签（自动发布），或在 Actions 页手动 `workflow_dispatch`（只构建不发布）。
 
 ### 7.4 关于"不是纯 HTML"
 前端 HTML/CSS/JS 是应用的 UI 源码，经 `go build` 的 `//go:embed` **整体编译进原生二进制**；最终用户拿到的是 `.exe` / `.app` 原生程序，磁盘上不存在独立可见的网页文件，也没有浏览器地址栏。开发期想先看效果可 `npm run serve` 起本地静态服务器（或直接双击 `src/index.html`）预览 UI，但**正式交付物是编译出的原生程序**。

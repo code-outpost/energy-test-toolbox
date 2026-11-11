@@ -4,6 +4,7 @@
 
 产物：
   assets/app.ico          多尺寸 Windows 图标（供 PE 资源 / exe）
+  assets/app.icns         多尺寸 macOS 图标（供 .app bundle）
   src/assets/favicon.ico   网页 favicon（随 src/ 一起嵌入 exe）
   docs/assets/icon-512.png 官网用大图
   docs/assets/favicon.ico  官网 favicon
@@ -186,6 +187,24 @@ def make_ico(images):
     return header + b"".join(entries) + b"".join(blobs)
 
 
+# macOS .icns 条目类型（PNG 压缩，10.7+ 支持）
+ICNS_TYPES = {
+    16: b"icp4", 32: b"icp5", 64: b"icp6",
+    128: b"ic07", 256: b"ic08", 512: b"ic09",
+}
+
+
+def make_icns(images):
+    """images: [(size, png_bytes), ...] → 标准 icns（header + 若干 OSType 条目）。"""
+    entries = bytearray()
+    for size, data in images:
+        kind = ICNS_TYPES.get(size)
+        if kind is None:
+            continue
+        entries += kind + struct.pack(">I", len(data) + 8) + data
+    return b"icns" + struct.pack(">I", len(entries) + 8) + bytes(entries)
+
+
 def write(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
@@ -198,13 +217,15 @@ def main():
     images = []
     for s in ICO_SIZES:
         images.append((s, make_png(s, make_pixels(s))))
+    png512 = make_png(512, make_pixels(512))
     ico = make_ico(images)
     write(os.path.join(ROOT, "assets", "app.ico"), ico)
     write(os.path.join(ROOT, "src", "assets", "favicon.ico"), ico)
     write(os.path.join(ROOT, "docs", "assets", "favicon.ico"), ico)
-    write(os.path.join(ROOT, "docs", "assets", "icon-512.png"),
-          make_png(512, make_pixels(512)))
-    print("完成：%d 个尺寸 (16~256) + 512 PNG" % len(images))
+    write(os.path.join(ROOT, "docs", "assets", "icon-512.png"), png512)
+    write(os.path.join(ROOT, "assets", "app.icns"),
+          make_icns(images + [(512, png512)]))
+    print("完成：%d 个尺寸 (16~256) + 512 PNG + macOS icns" % len(images))
 
 
 if __name__ == "__main__":

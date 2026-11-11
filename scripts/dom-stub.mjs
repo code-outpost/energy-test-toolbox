@@ -74,7 +74,17 @@ export function installDOM() {
   global.window = global;
   global.Event = class { constructor(t) { this.type = t; } };
   global.location = { hash: '' };
-  global.localStorage = { _m: {}, getItem(k) { return this._m[k] || null; }, setItem(k, v) { this._m[k] = String(v); } };
+  // 与浏览器 Storage 接口对齐：length / key / removeItem / clear，
+  // 供设置与备份模块枚举 tb_ 键、覆盖恢复数据。
+  global.localStorage = {
+    _m: {},
+    get length() { return Object.keys(this._m).length; },
+    key(i) { return Object.keys(this._m)[i] ?? null; },
+    getItem(k) { return Object.prototype.hasOwnProperty.call(this._m, k) ? this._m[k] : null; },
+    setItem(k, v) { this._m[k] = String(v); },
+    removeItem(k) { delete this._m[k]; },
+    clear() { this._m = {}; }
+  };
   try { Object.defineProperty(global, 'navigator', { value: { clipboard: { writeText: async () => {} } }, configurable: true, writable: true }); } catch {}
   global.MutationObserver = class { observe() {} disconnect() {} };
   global.document = {

@@ -8,6 +8,7 @@ _*.html
 *.log
 node_modules/
 *.tmp
+*.exe~          # Go 链接器覆盖正在运行的 exe 时留下的旧版备份
 
 # CI 构建产物（由 Actions 生成，不入库）
 EnergyToolbox.exe

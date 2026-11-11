@@ -1,7 +1,8 @@
 name: Build & Release Desktop
 
-# 说明：唯一的 WebView 入口 webview_windows.go 带 //go:build windows，
-# 因此本项目只构建 Windows。原 macOS job 在本仓库结构下必然编译失败，已移除。
+# Windows: go-webview2（纯 Go，无 CGo）
+# macOS  : webview_go + 系统 WKWebView（CGo，需要 macOS runner 的 Xcode CLT）
+# 两个架构分别由 Intel / Apple Silicon runner 原生编译，再 lipo 成 universal .app。
 
 on:
   push:
@@ -16,13 +17,32 @@ permissions:
 
 jobs:
   verify:
-    name: Verify (tests + docs)
+    name: Verify (tests + docs + cross-compile)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Go unit tests (update whitelist / sums / port / window state)
+        run: go test ./...
+      - name: Cross-compile darwin (pure-Go fallback) and linux
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          GOOS=darwin GOARCH=arm64 go build -o /tmp/etb-darwin-arm64 .
+          GOOS=darwin GOARCH=amd64 go build -o /tmp/etb-darwin-amd64 .
+          GOOS=linux  GOARCH=amd64 go build -o /tmp/etb-linux .
+          GOOS=darwin GOARCH=arm64 go vet ./...
+          GOOS=linux  GOARCH=amd64 go vet ./...
+          echo "darwin/linux pure-Go build + vet OK"
       - name: Check syntax of every frontend script
         run: node scripts/check-syntax.mjs
       - name: Module registration + render
@@ -37,17 +57,21 @@ jobs:
         run: node scripts/test.units.mjs
       - name: Cross-tool result bus + local records
         run: node scripts/test.bus.mjs
+      - name: Settings / backup / theme / platform / update flow
+        run: node scripts/test.settings.mjs
       - name: Cross-document consistency
         run: node scripts/check-docs.mjs
       - name: PE resource object is present
         run: python scripts/verify_syso.py
+      - name: macOS app icon structure
+        run: python scripts/verify_icns.py
       - name: All-modules browser probe (dark + light, real Chromium)
         run: node scripts/check-light-theme.mjs
         env:
           CHROME: google-chrome
 
-  release:
-    name: Build Windows exe & publish
+  build-windows:
+    name: Build Windows exe
     needs: verify
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
@@ -94,13 +118,13 @@ jobs:
           node scripts/verify.mjs
           node scripts/test.interact.mjs
           node scripts/test.formulas.mjs
+          node scripts/test.settings.mjs
 
-      - name: Hash and sync dist copy
+      - name: Hash artifact
         shell: pwsh
         run: |
           $hash = (Get-FileHash EnergyTestToolbox.exe -Algorithm SHA256).Hash.ToLower()
-          "$hash  EnergyTestToolbox.exe" | Out-File -Encoding ascii SHA256SUMS.txt
-          Copy-Item EnergyTestToolbox.exe dist/EnergyTestToolbox.exe -Force
+          "$hash  EnergyTestToolbox.exe" | Out-File -Encoding ascii SHA256SUMS-windows.txt
           Write-Host "SHA256: $hash"
 
       - name: Upload build artifact
@@ -109,33 +133,111 @@ jobs:
           name: windows-exe
           path: |
             EnergyTestToolbox.exe
-            SHA256SUMS.txt
+            SHA256SUMS-windows.txt
 
+  build-macos:
+    name: Build macOS binary (${{ matrix.arch }})
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            arch: amd64
+          - runner: macos-15
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Build WKWebView native binary
+        env:
+          CGO_ENABLED: '1'
+          GOOS: 'darwin'
+          GOARCH: ${{ matrix.arch }}
+          MACOSX_DEPLOYMENT_TARGET: '11.0'
+        run: |
+          go build -trimpath -ldflags "-s -w" -o "etb-${{ matrix.arch }}" .
+          file "etb-${{ matrix.arch }}"
+      - name: Upload per-architecture binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: etb-${{ matrix.arch }}
+
+  package-macos:
+    name: Assemble universal .app
+    needs: [verify, build-macos]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: macos-*
+          merge-multiple: true
+      - name: Verify icon + plist before packaging
+        run: |
+          python3 scripts/verify_icns.py
+          python3 -c "import xml.dom.minidom as m; m.parse('assets/Info.plist'); print('Info.plist OK')"
+      - name: Assemble .app, codesign and zip
+        run: |
+          chmod +x scripts/build-macos.sh etb-arm64 etb-amd64
+          scripts/build-macos.sh "$PWD/etb-arm64" "$PWD/etb-amd64"
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-zip
+          path: |
+            dist/EnergyTestToolbox-macos-universal.zip
+            dist/SHA256SUMS-macos.txt
+
+  publish:
+    name: Publish Release
+    needs: [verify, build-windows, package-macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-exe
+      - uses: actions/download-artifact@v4
+        with:
+          name: macos-zip
+      - name: Merge per-platform checksums
+        run: |
+          cat SHA256SUMS-windows.txt SHA256SUMS-macos.txt > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          mkdir -p dist
+          cp EnergyTestToolbox.exe dist/EnergyTestToolbox.exe
+      - name: Verify published files against checksum file
+        run: sha256sum -c SHA256SUMS.txt
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           body_path: RELEASE_NOTES.md
           files: |
             EnergyTestToolbox.exe
+            EnergyTestToolbox-macos-universal.zip
             SHA256SUMS.txt
 
-      # 让仓库里的 dist 镜像与 CI 产物、Release 附件始终一致，避免「改了代码忘同步」。
+      # 让仓库里的 dist 镜像与 CI 产物、Release 附件始终一致。
       # [skip ci] 防止这次回写再次触发本 workflow；回写失败不影响 Release。
       - name: Sync release assets back to main
-        if: startsWith(github.ref, 'refs/tags/v')
         continue-on-error: true
-        shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f dist/EnergyTestToolbox.exe SHA256SUMS.txt
-          git diff --cached --quiet
-          if ($LASTEXITCODE -ne 0) {
+          if ! git diff --cached --quiet; then
             git commit -m "chore: sync release assets for ${{ github.ref_name }} [skip ci]"
             git push origin HEAD:main
-            Write-Host "dist mirror + SHA256SUMS.txt synced to main"
-          } else {
-            Write-Host "assets unchanged, nothing to sync"
-          }
+            echo "dist mirror + SHA256SUMS.txt synced to main"
+          else
+            echo "assets unchanged, nothing to sync"
+          fi

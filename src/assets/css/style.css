@@ -583,3 +583,30 @@ th { background: var(--surface-3); font-weight: 700; color: var(--text-2); }
   .print-report .trend-svg { background: #fff !important; color: #0a5a80 !important; }
   @page { margin: 16mm; }
 }
+
+/* ===== v0.3.0：键盘无障碍 / 减弱动效 / 设置面板 ===== */
+/* 全局 outline:none 曾让按钮与导航项在键盘 Tab 时完全没有可见焦点，这里补回。
+   放在文件末尾以覆盖前面 input:focus 等同特异性规则。 */
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible,
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+[data-theme="light"] button:focus-visible,
+[data-theme="light"] a:focus-visible,
+[data-theme="light"] input:focus-visible,
+[data-theme="light"] textarea:focus-visible,
+[data-theme="light"] select:focus-visible { outline-color: #1d4ed8; }
+button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent-soft), var(--shadow); }
+.warn-text { color: var(--warn); font-weight: 700; }
+[data-theme="light"] .warn-text { color: #92400e; }
+
+/* 尊重系统「减少动态效果」：关闭网格漂移、发光与过渡动画。 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

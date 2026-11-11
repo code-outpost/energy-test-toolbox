@@ -2,6 +2,31 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。应用内「关于 / 检查更新」与官网展示的版本号以 `src/version.js` 为唯一来源。
 
+## [v0.3.0] — 2026-11-11
+
+桌面化闭环 + **macOS 原生版**，共 **62 个工具 / 10 大分类**（在 v0.2.0 基础上，综合工具 5 → 6）。功能层面不再堆计算工具，转向把已有能力补成可长期使用的双平台桌面应用。
+
+### 新增
+- **「设置与备份」入口**：主题三态、本机数据整体导出 / 恢复、版本更新下载与校验统一收进一个可搜索的模块。
+- **固定用户数据目录**：WebView2 `UserDataFolder` 指向 `%APPDATA%\EnergyTestToolbox\WebView2`。修复此前按 exe 文件名建目录、改名即「丢收藏 / 丢测试记录」的问题。
+- **全局备份 / 恢复**：导出全部 `tb_` 前缀数据为带应用标识与 schema 的 JSON；导入校验标识 / schema / 键前缀 / 值类型 / 4 MB 上限，覆盖恢复后自动刷新。
+- **单实例与窗口记忆**：`CreateMutexW` 阻止双开（原双开会起两个随机端口、两份数据），第二个实例聚焦已有窗口；窗口宽高与位置持久化，重启原样恢复。
+- **更新闭环**：本机后端提供最新版本查询、附件下载、`SHA256SUMS.txt` 校验与文件定位；外链强制 HTTPS + GitHub 域名白名单（含重定向逐跳校验），校验失败立即删除，**不静默自替换 exe**。仅主动检查更新时联网。
+- **主题跟随系统与无障碍**：主题扩为「跟随系统 / 深色 / 浅色」并实时响应系统偏好；补齐 `:focus-visible` 键盘焦点环与 `prefers-reduced-motion` 动效降级。
+- **macOS 原生窗口**：`webview_darwin.go` 用 `webview_go` + 系统 WKWebView；CI 用 Intel / Apple Silicon 两个 runner 分别编译后 `lipo` 成 universal `EnergyTestToolbox.app`（固定 bundle id、6 尺寸 icns、ad-hoc 签名）。`flock` 文件锁单实例，`webview_darwin_nocgo.go` 提供无 Xcode 环境的纯 Go 降级形态。
+- **固定服务端口（数据可靠性修正）**：内置服务由随机端口改为复用上次端口（默认 `39017`）。此前 `localStorage` 按 origin（含端口）分区，每次启动都换 origin，收藏 / 最近使用 / 中转站 / 测试记录会「看似丢失」；固定目录只解决了一半。新增 `/api/app/info` 在「运行环境」显示真实平台、数据目录、端口与窗口形态，`/api/app/quit` 供降级形态优雅退出。
+
+### 工程化
+- 新增 `desktop.go` / `desktop_windows.go` / `desktop_darwin.go` / `desktop_other.go` / `api_app.go` / `api_update.go`，`main.go` 接入单实例、固定端口与本机 API；`webview_windows.go` 固定 `DataPath` 并恢复窗口几何。
+- 新增 `webview_darwin.go` / `webview_darwin_nocgo.go`、`assets/Info.plist` / `app.icns`、`scripts/build-macos.sh` / `verify_icns.py`；`go.mod` 引入 `webview_go`（仅 darwin && cgo 参与编译，Windows 仍零 CGo）。
+- `build.yml` 重构为 verify → Windows / macOS 双架构构建 → macOS 打包 → 统一发布；`SHA256SUMS.txt` 改为同时列出 exe 与 macOS zip，`api_update.go` 按平台挑对应那一行。
+- `test.settings.mjs` 扩到 48 条（新增运行环境 / macOS 资产选择 / 退出按钮）；Go 单测 11 组（新增端口复用、环境接口、跨站拒绝）；CI 纳入 darwin 双架构纯 Go 编译与 icns 结构校验。
+- 全套回归：62/62 模块、20/20 交互、55/55 数值、38/38 量纲、27/27 总线、48/48 设置、boot 0 失败、语法 68 文件 0 失败、双主题浏览器探针 62×2、Go 11 组。
+
+> ⚠️ 升级提示：新版使用固定数据目录**与固定端口**，旧版数据仍在 `%APPDATA%\<旧 exe 文件名>` 的旧 profile / 旧随机端口对应的 origin 下；请先用旧版导出备份，再在新版「设置与备份」导入恢复。macOS 包未公证，首次打开请右键 → 打开或清除 quarantine 属性。
+
+---
+
 ## [v0.2.0] — 2026-11-10
 
 工程化深化版本，共 **61 个工具 / 10 大分类**（计算器 10、协议报文解析 10、高压电工 7、日常工具 6、开发常用 6、电力计算 5、通用编解码 5、Linux 命令 4、SQL 辅助 3、综合工具 5）。
