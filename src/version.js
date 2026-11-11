@@ -1,6 +1,6 @@
 // 版本信息的单一来源：应用内显示、检查更新、文档与 CI 均以此为准。
 window.TB = window.TB || {};
-TB.VERSION = '0.4.0';
+TB.VERSION = '0.4.1';
 TB.RELEASE = {
   owner: 'code-outpost',
   repo: 'energy-test-toolbox',

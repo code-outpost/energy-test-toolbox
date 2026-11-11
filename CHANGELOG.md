@@ -2,6 +2,26 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。应用内「关于 / 检查更新」与官网展示的版本号以 `src/version.js` 为唯一来源。
 
+## [v0.4.1] — 2026-11-11
+
+把 macOS 从「解压得到 .app」补成**标准双击安装**。功能与工具数不变（63 个工具 / 10 大分类）。
+
+### 新增
+- **DMG 拖拽安装镜像**：`scripts/build-macos.sh` 用 `hdiutil` 生成只读 UDZO 镜像，内含通用 `.app`、`Applications` 快捷方式与中文 `README.txt`。双击挂载 → 拖进去即完成安装。CI 实际挂载镜像校验 `.app` 可执行位、快捷方式与说明文件。
+- **PKG 双击安装器**：`pkgbuild` 组件包固定安装到 `/Applications`，`assets/macos-postinstall` 在安装后清理 `com.apple.quarantine`、重建 ad-hoc 签名并补执行位 —— 装完双击图标即可打开，无需手动处理「无法验证开发者」。CI 展开包校验 `PackageInfo`、payload 主程序与 postinstall。
+- **官网 macOS 下载卡片**：DMG / PKG 双按钮（PKG 标推荐），旧 `.zip` 保留兼容；hero 与特性区同步说明两种安装方式。
+
+### 变更
+- 更新下载按平台挑选 macOS 附件由 `.zip` 改为 `.dmg`（`api_update.go` 的 `macAsset` / `updateAssetExt`，`settings.js` 的 `MAC_ASSET`），落盘文件名与哈希清单行同步。
+- `SHA256SUMS.txt` 从 2 行扩为 4 行：Windows exe + macOS dmg / pkg / zip。CI 的 `package-macos` job 一次产出三份 macOS 产物并逐项校验后发布。
+- `scripts/build-macos.sh` 增加打包前硬校验（主程序执行位、`plutil -lint`、universal 架构），避免产出「双击没反应」的包。
+
+### 测试
+- 新增 `TestMacUpdateAssetIsInstallable`（macOS 更新包必须是 DMG）；`test.settings.mjs` 增补「macOS 不误选 exe / 旧 zip」断言；CI verify 增加 `bash -n` 与关键打包步骤静态检查。
+- macOS 端新增 DMG 挂载校验与 PKG 结构展开校验两个 job 步骤。
+
+> ⚠️ 仍未做 Apple Developer ID 签名 / 公证：从网络下载的 **PKG 文件本身**首次可能仍需右键 → 打开一次；但它安装出的 `.app` 不带隔离属性，可以直接双击运行。DMG / zip 拖出的 `.app` 若被拦截，右键 → 打开或执行 `xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app`。
+
 ## [v0.4.0] — 2026-11-11
 
 把两条协议线从「能解析」补成「能算点、能组包、能联调」，共 **63 个工具 / 10 大分类**（协议报文解析 10 → 11）。

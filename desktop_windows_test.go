@@ -5,9 +5,19 @@ package main
 // 单实例 Win32 路径的最小回归：不需要启动 GUI 窗口，
 // 只验证 CreateMutexW 的首次 / 重复 / 释放后行为，以及 EnumWindows 回调可安全执行。
 
-import "testing"
+import (
+	"strconv"
+	"testing"
+	"time"
+)
 
 func TestSingleInstanceMutex(t *testing.T) {
+	// 隔离到本测试专用的互斥体名：真实应用可能正在运行，共用全局名会让
+	// 「首个实例应获得锁」被外部环境误判失败（不是代码缺陷）。
+	orig := singleInstanceMutexName
+	singleInstanceMutexName = "EnergyTestToolbox_Test_" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	t.Cleanup(func() { singleInstanceMutexName = orig })
+
 	first, release := acquireSingleInstance()
 	if !first {
 		t.Fatal("第一个实例应获得互斥体（若系统残留同名互斥体请检查是否有正在运行的应用）")

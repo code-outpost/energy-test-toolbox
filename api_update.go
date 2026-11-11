@@ -27,7 +27,7 @@ import (
 const (
 	ghLatestAPI = "https://api.github.com/repos/code-outpost/energy-test-toolbox/releases/latest"
 	winAsset    = "EnergyTestToolbox.exe"
-	macAsset    = "EnergyTestToolbox-macos-universal.zip"
+	macAsset    = "EnergyTestToolbox-macos-universal.dmg"
 	sumsAsset   = "SHA256SUMS.txt"
 	maxExeBytes = 64 << 20 // 单个更新包上限 64 MiB，异常响应直接拒绝
 )
@@ -43,7 +43,7 @@ func updateAssetName() string {
 
 func updateAssetExt() string {
 	if runtime.GOOS == "darwin" {
-		return ".zip"
+		return ".dmg"
 	}
 	return ".exe"
 }

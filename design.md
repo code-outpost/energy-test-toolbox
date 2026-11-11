@@ -1,7 +1,15 @@
 # 能源开发测试工具箱 · 设计方案
 
-> 版本：v4.2（v0.4.0 双协议深化：IEC 104 四遥点位计算器 + SmartLogger 点表 + MODBUS TCP/RTU 发送计算；63 工具 / 10 分类；Windows / macOS 双平台同源）
-> 日期：2026-11-04（2026-11-05 切换为 Go 壳；2026-11-06 交付 exe；2026-11-07 二次修复重新出包；2026-11-08 两栏布局 + 开发常用 / 高压电工 / 科技感主题 + 日常工具；2026-11-09 图标 + GitHub + 官网；2026-11-11 桌面化闭环 + macOS 版 + 双协议深化）
+> 版本：v4.3（v0.4.1 macOS 双击安装包：DMG 拖拽镜像 + PKG 系统安装向导；63 工具 / 10 分类；Windows / macOS 双平台同源）
+> 日期：2026-11-04（2026-11-05 切换为 Go 壳；2026-11-06 交付 exe；2026-11-07 二次修复重新出包；2026-11-08 两栏布局 + 开发常用 / 高压电工 / 科技感主题 + 日常工具；2026-11-09 图标 + GitHub + 官网；2026-11-11 桌面化闭环 + macOS 版 + 双协议深化 + 双击安装包）
+>
+> **v4.3（2026-11-11）v0.4.1 macOS 双击安装包**
+> - **问题**：v0.3.0 / v0.4.0 的 macOS 产物只有 `EnergyTestToolbox-macos-universal.zip`，用户要自己解压、自己拖进 Applications，还要处理未公证导致的 Gatekeeper 拦截 —— 不是「双击安装」的形态。
+> - **DMG**：`hdiutil create -srcfolder`（含 `.app`、`ln -s /Applications`、中文安装说明）建 UDRW，再 `hdiutil convert -format UDZO` 压成只读镜像；双击挂载即出现拖拽安装窗口。
+> - **PKG**：`pkgbuild --root ... --install-location /Applications --identifier cn.code-outpost.energytesttoolbox.app --scripts`（`assets/macos-postinstall`）。postinstall 由 Installer 以 root 执行，清理 `com.apple.quarantine`、重建 ad-hoc 签名、补执行位；**安装出的 .app 不继承下载隔离属性，装完双击即可运行**，这是相对 zip / DMG 的关键体验改善。
+> - **打包前硬校验**：`test -x` 主程序、`plutil -lint` Info.plist、`lipo -info` 架构；PKG 另用 `pkgutil --expand` 校验 PackageInfo 安装位置、postinstall 存在与 payload 主程序；CI 再实际 `hdiutil attach` 挂载 DMG 校验内容。
+> - **更新链路**：`api_update.go` 的 macOS 资产由 zip 改为 dmg（含落盘扩展名），`settings.js` 同步；`SHA256SUMS.txt` 变为 4 行多平台清单。历史 zip 仍保留发布，兼容旧链接与脚本化分发。
+> - **边界**：无 Apple Developer ID / 公证服务，下载到的 **PKG 文件本身**首次仍可能要右键 → 打开一次；这是分发成本限制，不是功能缺陷。
 >
 > **v4.2（2026-11-11）v0.4.0 双协议深化**
 > - **点表数据层**：`scripts/extract_iec104_points.py` 用标准库解析 SmartLogger V300R024C10SPC275《IEC104 转发协议接口描述》（43 个 sheet），按「第 1 行四遥分区 / 第 2 行分区表头 / 第 3 行起数据」抽取 40 张设备表 / **5561 条点位**，另取 `总体描述` 的十六进制基地址（遥信 0001H / 遥测 4001H / 遥控 6001H / 遥调 6201H）、字节数配置与 7 条转发设备点号分配，生成 `src/data/iec104-points.js`（约 495 KB，随 `go:embed` 打入二进制）。
@@ -150,7 +158,9 @@ D:/小工具/
 ├── api_app.go             # /api/app/info（平台 / 数据目录 / 端口）与退出
 ├── api_update.go          # 按平台挑选更新附件 + SHA256 校验
 ├── assets/Info.plist      # .app 元数据（固定 bundle id / 本地网络例外）
-├── scripts/build-macos.sh # lipo 通用二进制 + .app 组装 + codesign + zip
+├── assets/macos-postinstall   # PKG 安装后清理隔离属性 + 重签名
+├── assets/macos-readme.txt    # DMG 内的中文安装说明
+├── scripts/build-macos.sh # lipo 通用二进制 + .app + DMG / PKG / zip
 ├── package.json           # 脚本：serve（Web 预览）、build（Go 构建）
 ├── src/                    # 前端 UI 源码（编译时整体嵌入二进制）
 │   ├── index.html
@@ -274,10 +284,11 @@ D:/小工具/
 
 **macOS（已装 Xcode CLT）**：
 ```bash
-bash scripts/build-macos.sh          # 当前架构 CGO_ENABLED=1 → dist/EnergyTestToolbox-macos-universal.zip
+bash scripts/build-macos.sh          # 当前架构 CGO_ENABLED=1 → zip / dmg / pkg 三份产物
 # CI 双架构（CI 内先 chmod +x，可直接执行）：
 bash scripts/build-macos.sh /path/to/etb-arm64 /path/to/etb-amd64   # lipo 合成 universal
 ```
+一次产出 `dist/EnergyTestToolbox-macos-universal.zip`（兼容旧链接）、`.dmg`（双击挂载拖拽安装）、`EnergyTestToolbox-macos-installer.pkg`（双击由系统安装向导自动装入 `/Applications`）与三行 `SHA256SUMS-macos.txt`。PKG 的 `postinstall` 会清理隔离属性并重建签名，装完双击图标即可打开。
 - Windows 无需任何 MSVC / VS / Rust；`npm` 仅用于开发期 Web 预览（`npm run serve` 起一个本地静态服务器看效果），**构建 exe/app 完全不依赖 Node**。
 - 图标：`scripts/make_icon.py` 一次生成 `assets/app.ico`（七尺寸，经 `rsrc` 编为 `rsrc_windows_amd64.syso` 嵌入 PE）与 `assets/app.icns`（六尺寸，装入 `.app/Contents/Resources`）；`src/assets/favicon.ico` 随 `//go:embed all:src` 作为窗口页 favicon。校验分别用 `python scripts/verify_icon.py` 与 `python scripts/verify_icns.py`。
 - `.app` 元数据在 `assets/Info.plist`：固定 `CFBundleIdentifier = cn.code-outpost.energytesttoolbox`（WKWebView 存储按此隔离）、`NSAllowsLocalNetworking`（允许访问内置 127.0.0.1 服务）、最低系统 11.0。打包脚本做 ad-hoc 签名，避免 Gatekeeper 直接判「已损坏」。
@@ -287,8 +298,8 @@ bash scripts/build-macos.sh /path/to/etb-arm64 /path/to/etb-amd64   # lipo 合�
   - `verify`（ubuntu）：全套前端回归 + `go test ./...` + darwin 双架构纯 Go 交叉编译 / vet + icns / syso 校验。
   - `build-windows`（windows-latest）：`CGO_ENABLED=0` 出 `EnergyTestToolbox.exe`，PE 图标校验，产出 `SHA256SUMS-windows.txt`。
   - `build-macos`（matrix：`macos-15-intel` / `macos-15`）：各自 `CGO_ENABLED=1` 原生编译 amd64 / arm64，规避 Windows 无法交叉编译 CGo 的限制。
-  - `package-macos`（macos-15）：`lipo` 合成 universal、`Info.plist` + `app.icns` 组装 `.app`、ad-hoc `codesign`、`ditto` 打 zip，产出 `SHA256SUMS-macos.txt`。
-  - `publish`（ubuntu）：合并两份哈希为多平台 `SHA256SUMS.txt`，`sha256sum -c` 校验后统一发布 Release，并把 exe 镜像回写 `dist/`。
+  - `package-macos`（macos-15）：`lipo` 合成 universal、`Info.plist` + `app.icns` 组装 `.app`、ad-hoc `codesign`；`ditto` 打 zip、`hdiutil` 打 UDZO DMG、`pkgbuild` 打 PKG。新增两个校验步骤：实际挂载 DMG 检查 `.app` / `Applications` 快捷方式 / 说明文件，展开 PKG 检查安装位置 / payload 主程序 / postinstall，产出 `SHA256SUMS-macos.txt`（3 行）。
+  - `publish`（ubuntu）：合并两份哈希为 4 行多平台 `SHA256SUMS.txt`，`sha256sum -c` 校验后统一发布 Release（exe + dmg + pkg + zip + 清单），并把 exe 镜像回写 `dist/`。
 - 触发方式：推送 `v*` 标签（自动发布），或在 Actions 页手动 `workflow_dispatch`（只构建不发布）。
 
 ### 7.4 关于"不是纯 HTML"

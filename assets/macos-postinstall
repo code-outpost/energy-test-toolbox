@@ -1,0 +1,20 @@
+#!/bin/bash
+# macOS 安装器 postinstall（由 Installer.app 以 root 执行）。
+#
+# 目的：让「双击安装」之后 .app 可以直接双击运行。
+#  1. 从网络下载的 pkg 会带 com.apple.quarantine；Installer 释放出的 .app
+#     一般不再继承该属性，这里仍显式清理一次，覆盖各种下载器/浏览器差异。
+#  2. pkgbuild 打包可能让 bundle 的 ad-hoc 签名失效，安装后重新签名，
+#     避免 Gatekeeper 把应用判为「已损坏」。
+# 所有步骤均为尽力而为，失败不能阻断安装流程。
+set -u
+
+APP="/Applications/EnergyTestToolbox.app"
+
+if [ -d "$APP" ]; then
+  /usr/bin/xattr -dr com.apple.quarantine "$APP" 2>/dev/null || true
+  /usr/bin/codesign --force --deep --sign - "$APP" 2>/dev/null || true
+  /bin/chmod +x "$APP/Contents/MacOS/EnergyTestToolbox" 2>/dev/null || true
+fi
+
+exit 0

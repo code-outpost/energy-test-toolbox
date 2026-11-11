@@ -146,7 +146,8 @@ has('下载请求携带附件地址', downloadedBody && downloadedBody.url, 'Ene
 has('下载请求携带哈希清单地址', downloadedBody && downloadedBody.sumsUrl, 'SHA256SUMS.txt');
 has('面板显示 SHA256 校验通过', txt(findId(body, 'st_upd')), 'SHA256 校验通过');
 has('面板显示下载文件完整路径', txt(findId(body, 'st_upd')), 'EnergyTestToolbox-v9.9.9.exe');
-has('面板提示手动覆盖 exe', txt(body), '手动覆盖');
+has('面板提示双击安装包完成更新', txt(body), '双击');
+has('面板明确不会自动替换运行中的应用', txt(body), '不会自动替换');
 clickText(body, '打开所在文件夹');
 await tick();
 has('打开文件夹有结果提示', txt(findId(body, 'st_msg')), '已在文件管理器中定位');
@@ -156,6 +157,8 @@ let quitCalled = false;
 const macAssets = [
   { name: 'EnergyTestToolbox.exe', browser_download_url: 'https://github.com/x/y/releases/download/v9.9.9/EnergyTestToolbox.exe' },
   { name: 'EnergyTestToolbox-macos-universal.zip', browser_download_url: 'https://github.com/x/y/releases/download/v9.9.9/EnergyTestToolbox-macos-universal.zip' },
+  { name: 'EnergyTestToolbox-macos-universal.dmg', browser_download_url: 'https://github.com/x/y/releases/download/v9.9.9/EnergyTestToolbox-macos-universal.dmg' },
+  { name: 'EnergyTestToolbox-macos-installer.pkg', browser_download_url: 'https://github.com/x/y/releases/download/v9.9.9/EnergyTestToolbox-macos-installer.pkg' },
   { name: 'SHA256SUMS.txt', browser_download_url: 'https://github.com/x/y/releases/download/v9.9.9/SHA256SUMS.txt' }
 ];
 global.fetch = async (url) => {
@@ -184,7 +187,9 @@ has('浏览器形态提供退出按钮', txt(findId(macBody, 'st_env_actions')),
 clickText(macBody, '检查更新');
 await tick(); await tick();
 has('macOS 检查到新版本', txt(findId(macBody, 'st_upd')), 'v9.9.9');
-has('macOS 只选本平台更新包', txt(findId(macBody, 'st_upd')), 'EnergyTestToolbox-macos-universal.zip');
+has('macOS 选双击可安装的 DMG 更新包', txt(findId(macBody, 'st_upd')), 'EnergyTestToolbox-macos-universal.dmg');
+eq('macOS 不误选 Windows exe', txt(findId(macBody, 'st_upd')).indexOf('EnergyTestToolbox.exe') >= 0, false);
+eq('macOS 不误选旧 zip', txt(findId(macBody, 'st_upd')).indexOf('macos-universal.zip') >= 0, false);
 clickText(macBody, '退出应用');
 await tick(); await tick();
 eq('退出调用后端 /api/app/quit', quitCalled, true);

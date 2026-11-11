@@ -6,7 +6,7 @@
   const SCHEMA = 1;
   const MAX_BACKUP = 4 * 1024 * 1024;
   const WIN_ASSET = 'EnergyTestToolbox.exe';
-  const MAC_ASSET = 'EnergyTestToolbox-macos-universal.zip';
+  const MAC_ASSET = 'EnergyTestToolbox-macos-universal.dmg';
 
   // 更新包必须与当前平台一致，否则 macOS 会下载到一个无法使用的 .exe。
   // 优先用后端 /api/app/info 的平台字段；浏览器直开时用 UA 兜底。
@@ -100,7 +100,7 @@
       '适用范围：仅本机单用户数据，不含跨设备同步与云端账号',
       '容量上限：单个备份文件 4 MB；测试记录上限 30 条，工具历史上限 20 条',
       '警告：恢复会覆盖当前收藏与记录，请先导出一份当前数据作为回滚副本',
-      '警告：不会自动替换正在运行的应用，下载校验通过后由你手动覆盖 Windows 的 .exe 或 macOS 的 .app',
+      '警告：不会自动替换正在运行的应用；下载校验通过后请手动双击安装包完成更新（macOS 为 .dmg）',
       'macOS 版为 WKWebView 原生窗口；纯 Go 兜底形态会在「运行环境」里提供退出按钮'
     ],
     render(c) {
@@ -358,7 +358,7 @@
             body: JSON.stringify({ path: downloaded.path })
           });
           const j = await r.json();
-          say(j.ok ? '已在文件管理器中定位，请关闭应用后手动替换更新包。' : ('打开失败：' + (j.error || '未知错误')), !j.ok);
+          say(j.ok ? '已在文件管理器中定位，请关闭应用后双击安装包完成更新。' : ('打开失败：' + (j.error || '未知错误')), !j.ok);
         } catch (e) {
           say('打开失败：' + (e && e.message ? e.message : e), true);
         }
@@ -366,7 +366,7 @@
 
       c.appendChild(T.el('div', { class: 'card' }, [
         T.el('h3', { text: '版本与更新' }), updBox, updActions,
-        T.el('p', { class: 'hint', text: '校验通过后不会自动替换正在运行的应用：请先关闭本程序，再手动覆盖 Windows 的 .exe 或 macOS 的 .app。日常使用全程离线，只有主动检查更新时才联网。' })
+        T.el('p', { class: 'hint', text: '校验通过后不会自动替换正在运行的应用：请先关闭本程序，再双击已下载的安装包（Windows 的 .exe / macOS 的 .dmg）完成更新。日常使用全程离线，只有主动检查更新时才联网。' })
       ]));
       c.appendChild(msg);
       paintUpdate();

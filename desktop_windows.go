@@ -24,6 +24,11 @@ const (
 	swpNoActivate     = 0x0010
 )
 
+// singleInstanceMutexName 允许回归测试注入唯一名称：用户可能正开着真实应用，
+// 共用全局互斥体名会让「首个实例应获得锁」的用例被外部环境误判为失败。
+// 生产运行始终使用 mutexName。
+var singleInstanceMutexName = mutexName
+
 var (
 	kernel32                = syscall.NewLazyDLL("kernel32.dll")
 	user32                  = syscall.NewLazyDLL("user32.dll")
@@ -46,7 +51,7 @@ type winRect struct{ Left, Top, Right, Bottom int32 }
 // 返回 (false, nil) 表示已有实例在运行、且已尝试把那个窗口切到前台，调用方应直接退出。
 // 互斥体创建失败时一律放行，绝不因为辅助能力异常而阻止用户启动。
 func acquireSingleInstance() (bool, func()) {
-	name, err := syscall.UTF16PtrFromString(mutexName)
+	name, err := syscall.UTF16PtrFromString(singleInstanceMutexName)
 	if err != nil {
 		return true, func() {}
 	}

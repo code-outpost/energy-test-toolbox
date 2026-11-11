@@ -212,15 +212,15 @@
   <section class="hero">
     <div class="wrap hero-in">
       <div class="reveal">
-        <span class="tag"><span class="dot"></span> v0.4.0 · 开源免费 · 离线可用</span>
+        <span class="tag"><span class="dot"></span> v0.4.1 · 开源免费 · 离线可用</span>
         <h1>电力与新能源<br /><span class="grad-text">开发测试工具箱</span></h1>
         <p class="lead">把日常要查的公式、要算的参数、要解的报文，全部收进一个桌面窗口。<b>63 个工具 · 10 大分类</b>，从标准计算器到 IEC 104 / MODBUS 报文解析，从高压电工考证公式到 JSON / 正则，打开即用，无需联网。</p>
         <div class="cta">
           <a class="btn btn-primary" href="https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe">↓ 下载 Windows 版</a>
-          <a class="btn btn-ghost" href="https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.zip">↓ 下载 macOS 版</a>
+          <a class="btn btn-ghost" href="https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.dmg">↓ 下载 macOS 版 (.dmg)</a>
           <a class="btn btn-ghost" href="https://github.com/code-outpost/energy-test-toolbox" target="_blank" rel="noopener">查看源码 ↗</a>
         </div>
-        <div class="meta-line"><span>Windows 单文件 exe</span><span>macOS 通用 .app</span><span>约 9 MB</span><span>免安装</span><span>无数据上传</span></div>
+        <div class="meta-line"><span>Windows 单文件 exe</span><span>macOS DMG / PKG 双击安装</span><span>约 9 MB</span><span>免联网</span><span>无数据上传</span></div>
       </div>
       <div class="reveal">
         <div class="window">
@@ -317,6 +317,7 @@
         <div class="why reveal"><div class="n">14</div><h3>双平台同源</h3><p>Windows 走 Edge WebView2（纯 Go），macOS 走系统 WKWebView（Intel / Apple Silicon 通用 .app）；同一套嵌入前端与本机 API，功能与界面完全一致。</p><div class="bar"></div></div>
         <div class="why reveal"><div class="n">15</div><h3>IEC 104 点表</h3><p>内置 SmartLogger 接口描述的 40 张设备表 / 5561 条四遥点位，全文秒搜；点号 ⇄ 信息体地址正反算、ASDU 组包，还能直接导入现场 xlsx 点表。</p><div class="bar"></div></div>
         <div class="why reveal"><div class="n">16</div><h3>MODBUS 发送计算</h3><p>TCP / RTU 双制式请求组包，覆盖 01–0x10 常用功能码；写入值按类型、字节序与系数反算原码，响应解码与工程值换算后可一键送入设备联调。</p><div class="bar"></div></div>
+        <div class="why reveal"><div class="n">17</div><h3>双击即装</h3><p>macOS 同时提供 DMG 拖拽安装镜像与 PKG 安装向导；PKG 自动装入「应用程序」、清理隔离属性并重建签名，装完双击图标就能打开。</p><div class="bar"></div></div>
       </div>
     </div>
   </section>
@@ -344,8 +345,10 @@
   go build -ldflags <span class="s">"-H windowsgui -s -w"</span> \
   -o <span class="p">EnergyTestToolbox.exe</span> .
 
-<span class="c"># macOS：组装 WKWebView 原生 .app（CI 会传入双架构二进制）</span>
+<span class="c"># macOS：lipo 合成通用 .app，并产出 DMG / PKG / zip 三种安装包</span>
 bash <span class="p">scripts/build-macos.sh</span> etb-arm64 etb-amd64
+<span class="c"># → EnergyTestToolbox-macos-universal.dmg   双击挂载，拖进 Applications</span>
+<span class="c"># → EnergyTestToolbox-macos-installer.pkg   双击由系统安装向导自动装好</span>
 
 <span class="c"># 前端资源自动嵌入，无需额外文件</span>
 <span class="c">//go:embed all:src</span>
@@ -368,7 +371,7 @@ TB.register({
     <div class="wrap">
       <div class="dl-box reveal">
         <h2>准备好把 63 个工具<span class="grad-text">装进桌面</span>了吗？</h2>
-        <p>Windows 双击 exe、macOS 把 .app 拖进「应用程序」；无需安装、无需联网、无需额外依赖。</p>
+        <p>Windows 双击 exe 即用；macOS 双击 DMG 拖进「应用程序」，或双击 PKG 由系统安装向导自动装好。无需联网、无需额外依赖。</p>
         <div class="dl-grid">
           <div class="dl-card">
             <div class="dl-os">WINDOWS</div>
@@ -379,15 +382,16 @@ TB.register({
           </div>
           <div class="dl-card">
             <div class="dl-os">MACOS</div>
-            <h3>通用 .app</h3>
-            <ul><li>Intel / Apple Silicon 通用二进制</li><li>macOS 11+，拖入「应用程序」即用</li><li>系统 WKWebView，无需额外运行时</li></ul>
-            <a class="btn btn-ghost" href="https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.zip">↓ 下载 macOS 版 (.zip)</a>
-            <div class="dl-file">EnergyTestToolbox-macos-universal.zip · 解压得 EnergyTestToolbox.app</div>
+            <h3>双击安装包 · 通用版</h3>
+            <ul><li>Intel / Apple Silicon 通用二进制，macOS 11+</li><li>DMG：双击挂载 → 把 App 拖进 Applications</li><li>PKG：双击 → 安装向导自动装好（推荐，装完直接打开）</li></ul>
+            <a class="btn btn-primary" href="https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.dmg">↓ 下载 macOS 版 (.dmg)</a>
+            <a class="btn btn-ghost" style="margin-top:10px" href="https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-installer.pkg">↓ 双击安装版 (.pkg · 推荐)</a>
+            <div class="dl-file">系统 WKWebView，无需额外运行时<br />旧版 <a href="https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.zip" style="color:var(--accent)">.zip（解压得 .app）</a> 仍可下载</div>
           </div>
         </div>
         <div class="cta" style="margin-top:22px"><a class="btn btn-ghost" href="https://github.com/code-outpost/energy-test-toolbox/releases" target="_blank" rel="noopener">查看全部 Releases ↗</a></div>
-        <div class="dl-meta"><span>v0.4.0</span><span>Windows 10 / 11</span><span>macOS 11+ · Intel / Apple Silicon</span><span>两个平台功能完全一致</span></div>
-        <p class="dl-hint">Release 附 <code>SHA256SUMS.txt</code>（同时列出两个平台），下载后可核对文件哈希。Windows 出现 SmartScreen 提示选「更多信息 → 仍要运行」；macOS 未公证，首次请右键 → 打开，或执行 <code>xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app</code>。<a href="https://github.com/code-outpost/energy-test-toolbox/blob/main/CHANGELOG.md" target="_blank" rel="noopener">查看更新日志 ↗</a></p>
+        <div class="dl-meta"><span>v0.4.1</span><span>Windows 10 / 11</span><span>macOS 11+ · Intel / Apple Silicon</span><span>两个平台功能完全一致</span></div>
+        <p class="dl-hint">Release 附 <code>SHA256SUMS.txt</code>（列出 Windows exe 与 macOS 的 dmg / pkg / zip），下载后可核对哈希。Windows 出现 SmartScreen 提示选「更多信息 → 仍要运行」；macOS 为临时签名、未做 Apple 公证：<b>PKG</b> 的安装程序会自动清理隔离属性并重建签名，装完双击图标即可打开；若仍被拦截，右键 → 打开，或执行 <code>xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app</code>。<a href="https://github.com/code-outpost/energy-test-toolbox/blob/main/CHANGELOG.md" target="_blank" rel="noopener">查看更新日志 ↗</a></p>
       </div>
     </div>
   </section>

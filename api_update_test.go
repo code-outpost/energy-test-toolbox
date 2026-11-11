@@ -14,7 +14,8 @@ func TestParseSums(t *testing.T) {
 	want := "83ba95404952aa10bf3f334bdb61388ace9addc2d513d17ee5c5c19e97efd2cd"
 	macHash := "1122334455667788990011223344556677889900112233445566778899001122"
 	body := "deadbeef  SHA256SUMS.txt\n" + want + "  EnergyTestToolbox.exe\n" +
-		macHash + "  EnergyTestToolbox-macos-universal.zip\n"
+		macHash + "  EnergyTestToolbox-macos-universal.dmg\n" +
+		"aabbccdd  EnergyTestToolbox-macos-installer.pkg\n"
 	if got := parseSums([]byte(body), winAsset); got != want {
 		t.Fatalf("解析 Windows 行失败: got %q want %q", got, want)
 	}
@@ -37,8 +38,18 @@ func TestUpdateAssetPerPlatform(t *testing.T) {
 	if got := updateAssetExt(); got != ".exe" {
 		t.Errorf("非 macOS 平台扩展名应为 .exe，实际 %s", got)
 	}
-	if winAsset == macAsset || macAsset != "EnergyTestToolbox-macos-universal.zip" {
+	if winAsset == macAsset || macAsset != "EnergyTestToolbox-macos-universal.dmg" {
 		t.Error("两个平台的产物名必须不同，且 macOS 名要与打包脚本一致")
+	}
+}
+
+func TestMacUpdateAssetIsInstallable(t *testing.T) {
+	// macOS 的更新包必须是「双击即可安装」的 DMG，扩展名也要跟着落盘文件名。
+	if !strings.HasSuffix(macAsset, ".dmg") {
+		t.Fatalf("macOS 更新包应为 DMG，实际 %s", macAsset)
+	}
+	if macAsset != "EnergyTestToolbox-macos-universal.dmg" {
+		t.Fatalf("macOS 资产名与 CI 产物不一致: %s", macAsset)
 	}
 }
 

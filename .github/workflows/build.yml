@@ -65,6 +65,14 @@ jobs:
         run: node scripts/test.modbus.mjs
       - name: Cross-document consistency
         run: node scripts/check-docs.mjs
+      - name: macOS packaging scripts are valid bash
+        run: |
+          bash -n scripts/build-macos.sh
+          bash -n assets/macos-postinstall
+          grep -q 'ln -s /Applications' scripts/build-macos.sh
+          grep -q 'hdiutil create' scripts/build-macos.sh
+          grep -q 'pkgbuild --root' scripts/build-macos.sh
+          echo "macOS DMG / PKG 打包脚本语法与关键步骤 OK"
       - name: PE resource object is present
         run: python scripts/verify_syso.py
       - name: macOS app icon structure
@@ -175,7 +183,7 @@ jobs:
           path: etb-${{ matrix.arch }}
 
   package-macos:
-    name: Assemble universal .app
+    name: Assemble universal .app / DMG / PKG
     needs: [verify, build-macos]
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: macos-15
@@ -189,16 +197,41 @@ jobs:
         run: |
           python3 scripts/verify_icns.py
           python3 -c "import xml.dom.minidom as m; m.parse('assets/Info.plist'); print('Info.plist OK')"
-      - name: Assemble .app, codesign and zip
+          bash -n scripts/build-macos.sh
+          bash -n assets/macos-postinstall
+      - name: Assemble .app, codesign, zip / DMG / PKG
         run: |
-          chmod +x scripts/build-macos.sh etb-arm64 etb-amd64
+          chmod +x scripts/build-macos.sh etb-arm64 etb-amd64 assets/macos-postinstall
           scripts/build-macos.sh "$PWD/etb-arm64" "$PWD/etb-amd64"
-      - name: Upload macOS artifact
+      - name: Verify DMG is a mountable drag-install image
+        run: |
+          set -e
+          MNT="$(mktemp -d)"
+          trap 'hdiutil detach "$MNT" >/dev/null 2>&1 || true' EXIT
+          hdiutil attach dist/EnergyTestToolbox-macos-universal.dmg -mountpoint "$MNT" -nobrowse -readonly >/dev/null
+          test -d "$MNT/EnergyTestToolbox.app"
+          test -L "$MNT/Applications"
+          test -x "$MNT/EnergyTestToolbox.app/Contents/MacOS/EnergyTestToolbox"
+          test -f "$MNT/README.txt"
+          echo "DMG 可挂载，含 .app / Applications 快捷方式 / 安装说明"
+      - name: Verify PKG installs to /Applications with postinstall
+        run: |
+          set -e
+          EXP="$(mktemp -d)/pkg"
+          pkgutil --expand dist/EnergyTestToolbox-macos-installer.pkg "$EXP" >/dev/null
+          test -f "$EXP/PackageInfo"
+          test -s "$EXP/Scripts"
+          python3 -c "import sys,xml.etree.ElementTree as E; r=E.parse(sys.argv[1]).getroot(); assert r.get('install-location')=='/Applications', r.attrib; print('PKG 安装位置:', r.get('install-location'), '标识:', r.get('identifier'))" "$EXP/PackageInfo"
+          pkgutil --payload-files dist/EnergyTestToolbox-macos-installer.pkg | grep -q 'EnergyTestToolbox.app/Contents/MacOS/EnergyTestToolbox'
+          echo "PKG 结构 / 安装位置 / 主可执行文件 / postinstall 校验通过"
+      - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-zip
+          name: macos-installers
           path: |
             dist/EnergyTestToolbox-macos-universal.zip
+            dist/EnergyTestToolbox-macos-universal.dmg
+            dist/EnergyTestToolbox-macos-installer.pkg
             dist/SHA256SUMS-macos.txt
 
   publish:
@@ -213,7 +246,7 @@ jobs:
           name: windows-exe
       - uses: actions/download-artifact@v4
         with:
-          name: macos-zip
+          name: macos-installers
       - name: Merge per-platform checksums
         run: |
           cat SHA256SUMS-windows.txt SHA256SUMS-macos.txt > SHA256SUMS.txt
@@ -229,6 +262,8 @@ jobs:
           body_path: RELEASE_NOTES.md
           files: |
             EnergyTestToolbox.exe
+            EnergyTestToolbox-macos-universal.dmg
+            EnergyTestToolbox-macos-installer.pkg
             EnergyTestToolbox-macos-universal.zip
             SHA256SUMS.txt
 

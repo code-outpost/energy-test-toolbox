@@ -2,7 +2,7 @@
 
 > 面向电力 / 新能源开发测试的一站式桌面工具集 —— **63 个工具 · 10 大分类 · Windows / macOS 双平台 · 完全离线**
 
-[官网](https://code-outpost.github.io/energy-test-toolbox/) · [下载 Windows 版](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe) · [下载 macOS 版](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.zip) · [Releases](https://github.com/code-outpost/energy-test-toolbox/releases) · [问题反馈](https://github.com/code-outpost/energy-test-toolbox/issues)
+[官网](https://code-outpost.github.io/energy-test-toolbox/) · [下载 Windows 版](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe) · [下载 macOS DMG](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.dmg) · [下载 macOS PKG](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-installer.pkg) · [Releases](https://github.com/code-outpost/energy-test-toolbox/releases)
 
 把日常要查的公式、要算的参数、要解的报文，全部收进一个桌面窗口。从标准计算器到 IEC 104 / MODBUS 报文解析，从高压电工考证公式到 JSON / 正则，打开即用。
 
@@ -13,15 +13,17 @@
 | 平台 | 下载 | 系统要求 / 形态 |
 | --- | --- | --- |
 | Windows | [EnergyTestToolbox.exe](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox.exe) | Windows 10 / 11，需 [Edge WebView2 运行时](https://developer.microsoft.com/microsoft-edge/webview2/)（系统通常已自带）；绿色单文件，约 9 MB |
-| macOS | [EnergyTestToolbox-macos-universal.zip](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.zip) | macOS 11+，Intel / Apple Silicon 通用包；`.app` 原生 WKWebView 窗口，无需额外运行时 |
+| macOS（推荐） | [EnergyTestToolbox-macos-installer.pkg](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-installer.pkg) | **双击 → 系统安装向导 → 自动装入 `/Applications`**；安装程序会清理隔离属性并重建签名，装完双击图标即可打开 |
+| macOS（拖拽） | [EnergyTestToolbox-macos-universal.dmg](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.dmg) | 双击挂载，把 `EnergyTestToolbox.app` 拖到窗口里的 `Applications` 图标 |
+| macOS（旧格式） | [EnergyTestToolbox-macos-universal.zip](https://github.com/code-outpost/energy-test-toolbox/releases/latest/download/EnergyTestToolbox-macos-universal.zip) | 解压得 `.app`，供脚本化分发 / 兼容旧链接；Intel / Apple Silicon 通用，原生 WKWebView 窗口 |
 
 | 项目 | 说明 |
 | --- | --- |
 | 成品文件 | 仓库根目录 `能源测试工具箱.exe`，`dist/EnergyTestToolbox.exe` 为其同步镜像；两者与 Release 附件的 SHA256 完全一致 |
 | 联网 | 常规功能零外网请求，所有前端资源已嵌入二进制；仅主动点「⟳ 更新」时访问 GitHub |
-| 校验 | 每次 Release 的 `SHA256SUMS.txt` 同时列出 Windows exe 与 macOS zip 的哈希，应用内「下载并校验」会自动挑本平台那一行 |
+| 校验 | 每次 Release 的 `SHA256SUMS.txt` 列出 Windows exe 与 macOS 的 dmg / pkg / zip 共 4 行哈希，应用内「下载并校验」会自动挑本平台那一行（macOS 为 dmg） |
 
-WebView2Loader.dll 已内嵌；Windows 若窗口无法打开请安装 WebView2 运行时。macOS 包已做 ad-hoc 签名但未公证，首次打开如果出现「无法验证开发者」，请**右键 → 打开**，或执行：
+WebView2Loader.dll 已内嵌；Windows 若窗口无法打开请安装 WebView2 运行时。macOS 包使用 ad-hoc 签名、未做 Apple 公证：**PKG 安装通常无需额外操作**；若 DMG / zip 首次打开提示「无法验证开发者」或「已损坏」，请**右键 → 打开**，或执行：
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app
@@ -45,6 +47,15 @@ xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app
 | Linux 命令 | 4 | chmod 权限计算器、命令速查、命令解析、crontab 生成器 |
 | SQL 辅助 | 3 | SQL 语句辅助、格式化美化、建表语句生成 |
 | 综合工具 | 6 | HEX 差异 / Dump、表达式计算、批量计算台、量纲校验台、测试记录、设置与备份 |
+
+### v0.4.1 macOS 双击安装包（DMG + PKG）
+
+- **DMG 拖拽安装镜像**：`hdiutil` 生成只读压缩 UDZO 镜像，内含通用 `.app`、`Applications` 快捷方式与中文安装说明；双击自动挂载，拖进去即完成安装。CI 会实际挂载镜像校验 `.app` 可执行位与快捷方式。
+- **PKG 双击安装器**：`pkgbuild` 组件包，安装位置固定 `/Applications`，带 `postinstall` 脚本清理 `com.apple.quarantine` 并重建 ad-hoc 签名；双击后一路「继续」即由系统安装向导装好，**装完直接双击图标可用**。CI 展开包校验 `PackageInfo`、payload 主程序与脚本。
+- **更新下载按平台切换**：macOS 的「检查更新 → 下载并校验」改为挑 `.dmg`（落盘扩展名同步），Windows 仍为 `.exe`；`SHA256SUMS.txt` 合并为 4 行多平台清单。
+- **官网**：macOS 下载卡片提供 DMG / PKG 双按钮，标注 PKG 推荐与首次打开处理说明；旧 `.zip` 仍保留下载。
+
+> ⚠️ 未做 Apple Developer ID 签名 / 公证是分发成本限制，不是功能缺陷：从网络下载的 **PKG 本身**首次可能仍需右键 → 打开一次，但安装出的 `.app` 不带隔离属性，可直接双击运行。
 
 ### v0.4.0 双协议深化（IEC 104 点位 + MODBUS 发送计算）
 
@@ -96,14 +107,16 @@ xattr -dr com.apple.quarantine /Applications/EnergyTestToolbox.app
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
   go build -trimpath -ldflags "-H windowsgui -s -w" -o EnergyTestToolbox.exe .
 
-# macOS 原生 .app（必须在 Mac 上执行，产出 dist/EnergyTestToolbox-macos-universal.zip）
+# macOS（必须在 Mac 上执行）：一次产出 zip / dmg / pkg 与三行哈希
 bash scripts/build-macos.sh
+# CI 传入双架构二进制合成通用包：
+# bash scripts/build-macos.sh /path/to/etb-arm64 /path/to/etb-amd64
 
 # 国内网络可加代理
 export GOPROXY=https://goproxy.cn,direct
 ```
 
-Windows PE 图标资源已随仓库提供（`rsrc_windows_amd64.syso`），Go 链接器会自动把它并入 exe，无需额外步骤。macOS 的 `.app` 由 `scripts/build-macos.sh` 组装（Info.plist + `app.icns` + Mach-O 可执行文件 + ad-hoc 签名 + zip）；CI 传入两个架构的二进制时会先用 `lipo` 合成通用二进制。
+Windows PE 图标资源已随仓库提供（`rsrc_windows_amd64.syso`），Go 链接器会自动把它并入 exe，无需额外步骤。macOS 的 `.app` 由 `scripts/build-macos.sh` 组装（Info.plist + `app.icns` + Mach-O 可执行文件 + ad-hoc 签名），再由同一脚本产出 DMG（`hdiutil`）、PKG（`pkgbuild` + `assets/macos-postinstall`）与兼容用 zip；CI 传入两个架构的二进制时先用 `lipo` 合成通用二进制。
 
 ### 重新生成图标
 
@@ -135,8 +148,8 @@ python scripts/verify_icns.py              # 校验 macOS 图标的 6 个尺寸�
 ├── api_update.go              更新查询 / 下载 / SHA256 校验 / 定位（按平台挑附件）
 ├── rsrc_windows_amd64.syso    PE 图标 / manifest 资源
 ├── api_points.go               /api/points/xlsx 本机点表导入（Go 标准库解析）
-├── assets/                    图标与 Info.plist（app.ico / app.icns / app.manifest / Info.plist）
-├── scripts/build-macos.sh     macOS .app 组装（lipo / codesign / ditto）
+├── assets/                    图标、Info.plist 与 macOS 安装资源（app.ico / app.icns / Info.plist / macos-postinstall / macos-readme.txt）
+├── scripts/build-macos.sh     macOS 打包（lipo / codesign / ditto / hdiutil / pkgbuild）
 ├── scripts/extract_iec104_points.py   从 SmartLogger 点表抽取前端数据
 ├── src/
 │   ├── index.html             静态顶栏 + 脚本入口
@@ -172,11 +185,12 @@ python scripts/verify_icns.py              # 校验 macOS 图标的 6 个尺寸�
 | `node scripts/check-light-theme.mjs` | 真实 Chromium 逐模块渲染 dark + light，检测文字对比度 | 63×2 全通过 |
 | `node scripts/test.units.mjs` | 量纲层：换算 / 仿射温标 / 功率三角形 / 混用拦截 | 38 / 38 通过 |
 | `node scripts/test.bus.mjs` | 结果总线：发布 / 引用 / 单位换算 / 端到端串联 / 测试记录 | 27 / 27 通过 |
-| `node scripts/test.settings.mjs` | 主题三态 / 备份导出与覆盖恢复 / 运行环境 / macOS 平台资产 / 更新下载校验闭环 | 48 / 48 通过 |
+| `node scripts/test.settings.mjs` | 主题三态 / 备份导出与覆盖恢复 / 运行环境 / macOS 只选 DMG 更新包 / 更新下载校验闭环 | 51 / 51 通过 |
 | `node scripts/test.iec104points.mjs` | 四遥点表 / 点号与 IOA 正反算 / 全文检索 / ASDU 组包 / CSV 点表导入 | 84 / 84 通过 |
 | `node scripts/test.modbus.mjs` | MODBUS 组包 / CRC / MBAP / 编解码 / 工程值 / IEC104 解析器联动修复 | 68 / 68 通过 |
 | `python scripts/verify_syso.py` | 校验已提交的 PE 资源对象（CI 无 exe 时用） | 通过 |
 | `python scripts/verify_icns.py` | 校验 macOS `app.icns` 的 6 个尺寸与条目结构 | 通过 |
+| `bash -n scripts/build-macos.sh` | macOS 打包脚本（DMG / PKG）与 postinstall 的 bash 语法，CI verify 同步执行 | 通过 |
 | `python scripts/verify_icon.py` | 校验 exe 的 PE 资源含 RT_ICON / RT_GROUP_ICON / RT_MANIFEST | 通过 |
 | `GOOS=darwin CGO_ENABLED=0 go build` | 纯 Go 兜底路径在 arm64 / amd64 均可编译（CI verify 中执行） | 2 / 2 通过 |
 | `go test ./...` | Go 层：白名单 / 多平台哈希清单 / 同源校验 / 端口复用 / 环境接口 / 窗口状态 / 单实例互斥体 | 11 组通过（Windows；Linux CI 9 组） |
@@ -212,9 +226,9 @@ python scripts/verify_icns.py              # 校验 macOS 图标的 6 个尺寸�
 ## 说明
 
 - Windows 与 macOS 功能完全一致；差异仅在窗口壳与打包形态。macOS 由 CI 的 macOS runner 编译（本机 Windows 无法编译 CGo 的 WKWebView 绑定），纯 Go 版 macOS 二进制可作为无 Xcode 环境的降级形态。
-- macOS 版未做 Apple 开发者签名 / 公证，首次打开需右键 → 打开；串口与 TCP 真实设备联调仍建议现场复验。
+- macOS 版未做 Apple 开发者签名 / 公证：推荐用 PKG 安装（安装后 `.app` 不带隔离属性，可直接双击）；DMG / zip 首次打开可能需右键 → 打开。串口与 TCP 真实设备联调仍建议现场复验。
 - 设计文档见 [`design.md`](design.md)，与本文档的模块计数保持一致（63 个工具 / 10 个分类）。
 - 所有计算均在本地完成，不上传任何输入数据。
-- 版本号以 [`src/version.js`](src/version.js) 为唯一来源（当前 `v0.4.0`），应用内「⟳ 更新」可检查 GitHub 最新版本，桌面版还能在「设置与备份」里下载并校验更新包。
+- 版本号以 [`src/version.js`](src/version.js) 为唯一来源（当前 `v0.4.1`），应用内「⟳ 更新」可检查 GitHub 最新版本，桌面版还能在「设置与备份」里下载并校验更新包。
 - 每次 Release 附带 `SHA256SUMS.txt`，下载后建议核对哈希；未签名 exe 首次运行可能触发 Windows SmartScreen 提示。
 - 许可证：[MIT](LICENSE) · 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md) · 更新日志：[CHANGELOG.md](CHANGELOG.md) · 问题反馈：[Issues](https://github.com/code-outpost/energy-test-toolbox/issues)
