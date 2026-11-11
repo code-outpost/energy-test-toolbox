@@ -266,9 +266,9 @@ D:/小工具/
 
 **macOS（已装 Xcode CLT）**：
 ```bash
-scripts/build-macos.sh          # 当前架构 CGO_ENABLED=1 → dist/EnergyTestToolbox-macos-universal.zip
-# CI 双架构：
-scripts/build-macos.sh /path/to/etb-arm64 /path/to/etb-amd64   # lipo 合成 universal
+bash scripts/build-macos.sh          # 当前架构 CGO_ENABLED=1 → dist/EnergyTestToolbox-macos-universal.zip
+# CI 双架构（CI 内先 chmod +x，可直接执行）：
+bash scripts/build-macos.sh /path/to/etb-arm64 /path/to/etb-amd64   # lipo 合成 universal
 ```
 - Windows 无需任何 MSVC / VS / Rust；`npm` 仅用于开发期 Web 预览（`npm run serve` 起一个本地静态服务器看效果），**构建 exe/app 完全不依赖 Node**。
 - 图标：`scripts/make_icon.py` 一次生成 `assets/app.ico`（七尺寸，经 `rsrc` 编为 `rsrc_windows_amd64.syso` 嵌入 PE）与 `assets/app.icns`（六尺寸，装入 `.app/Contents/Resources`）；`src/assets/favicon.ico` 随 `//go:embed all:src` 作为窗口页 favicon。校验分别用 `python scripts/verify_icon.py` 与 `python scripts/verify_icns.py`。

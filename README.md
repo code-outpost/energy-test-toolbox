@@ -87,7 +87,7 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
   go build -trimpath -ldflags "-H windowsgui -s -w" -o EnergyTestToolbox.exe .
 
 # macOS 原生 .app（必须在 Mac 上执行，产出 dist/EnergyTestToolbox-macos-universal.zip）
-scripts/build-macos.sh
+bash scripts/build-macos.sh
 
 # 国内网络可加代理
 export GOPROXY=https://goproxy.cn,direct
