@@ -151,9 +151,12 @@ body::after {
 .top-btn {
   height: 36px; padding: 0 13px; border: 1px solid var(--border-2); border-radius: 10px;
   background: var(--surface); color: var(--text-2); cursor: pointer; font-size: 13px; font-family: inherit;
-  transition: .15s;
+  display: inline-flex; align-items: center; gap: 6px; line-height: 1; white-space: nowrap; user-select: none;
+  transition: .14s ease; box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
 }
-.top-btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 14px var(--border-glow); }
+.top-btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 2px 10px var(--border-glow); transform: translateY(-1px); }
+.top-btn:active { transform: translateY(0); }
+[data-theme="light"] .top-btn { box-shadow: 0 1px 2px rgba(16, 24, 40, .08); }
 
 /* ---------- 布局 ---------- */
 .layout { display: grid; grid-template-columns: 244px 1fr; height: calc(100vh - 56px - 28px); }
@@ -274,17 +277,27 @@ body::after {
 .col { display: flex; flex-direction: column; gap: 8px; }
 label { font-size: 13px; color: var(--text-2); font-weight: 600; }
 .btn {
-  height: 36px; padding: 0 15px; border: 1px solid var(--border-2); border-radius: var(--radius-sm);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px; padding: 0 16px; border: 1px solid var(--border-2); border-radius: var(--radius-sm);
   background: var(--surface); color: var(--text); cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 600;
-  transition: .12s;
+  line-height: 1; white-space: nowrap; user-select: none;
+  transition: .14s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
 }
-.btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 12px var(--border-glow); }
-.btn.ghost { background: transparent; }
+.btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 2px 10px var(--border-glow); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .22); }
+.btn.ghost { background: transparent; box-shadow: none; }
+.btn.ghost:hover { background: var(--surface-2); }
 .btn.primary { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 4px 16px var(--border-glow); }
-.btn.primary:hover { filter: brightness(1.08); color: #fff; }
-.btn.sm { height: 30px; padding: 0 11px; font-size: 12px; }
+.btn.primary:hover { filter: brightness(1.08); color: #fff; transform: translateY(-1px); }
+.btn.sm { height: 30px; padding: 0 12px; font-size: 12px; }
 .btn.danger { color: var(--danger); border-color: var(--danger); }
-.btn.danger:hover { background: var(--danger-soft); box-shadow: none; }
+.btn.danger:hover { background: var(--danger-soft); box-shadow: none; color: var(--danger); }
+.btn:disabled, .btn[disabled] {
+  opacity: .45; cursor: not-allowed; box-shadow: none; transform: none;
+  border-color: var(--border-2); color: var(--text-3); background: var(--surface);
+}
+[data-theme="light"] .btn { box-shadow: 0 1px 2px rgba(16, 24, 40, .08); }
 
 input[type=text], input[type=number], textarea, select {
   border: 1px solid var(--border-2); border-radius: var(--radius-sm); padding: 10px 12px;
@@ -432,14 +445,24 @@ th { background: var(--surface-3); font-weight: 700; color: var(--text-2); }
 .tape .line { font-family: var(--mono); font-size: 12.5px; color: var(--text-2); padding: 4px 0; display: flex; justify-content: space-between; gap: 10px; }
 .tape .line .r { color: var(--text); font-weight: 700; }
 
-/* 进制 / 字长 切换（程序员计算器） */
-.base-switch { display: flex; gap: 7px; margin-bottom: 10px; }
-.base-switch .seg {
-  flex: 1; text-align: center; padding: 9px 0; border: 1px solid var(--border-2); border-radius: 10px;
-  cursor: pointer; font-size: 13px; color: var(--text-2); background: var(--surface-2); font-family: var(--mono); font-weight: 700; transition: .12s;
+/* 分段控件（进制 / 字长 / 主题等开关组）：统一为带内嵌轨道的胶囊切换 */
+.seg-group, .base-switch {
+  gap: 4px; padding: 4px; background: var(--surface-3);
+  border: 1px solid var(--border); border-radius: 12px;
 }
-.base-switch .seg:hover { border-color: var(--accent); color: var(--accent); }
-.base-switch .seg.active { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 3px 12px var(--border-glow); }
+.seg-group { display: inline-flex; }
+.base-switch { display: flex; margin-bottom: 10px; }
+.base-switch .seg, .seg-group .seg {
+  flex: 1; text-align: center; padding: 8px 14px; border: 1px solid transparent; border-radius: 9px;
+  cursor: pointer; font-size: 13px; color: var(--text-2); background: transparent; font-weight: 700;
+  line-height: 1.2; transition: .12s; user-select: none; white-space: nowrap;
+}
+.base-switch .seg { font-family: var(--mono); }
+.seg-group .seg { font-family: var(--font); }
+.base-switch .seg:hover, .seg-group .seg:hover { background: var(--surface); color: var(--accent); }
+.base-switch .seg.active, .seg-group .seg.active {
+  background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 2px 10px var(--border-glow);
+}
 .base-readout { display: grid; grid-template-columns: auto 1fr; gap: 7px 12px; margin: 12px 0; font-family: var(--mono); font-size: 13px; }
 .base-readout .k { color: var(--text-2); font-weight: 700; }
 .base-readout .v { word-break: break-all; }
@@ -584,6 +607,35 @@ th { background: var(--surface-3); font-weight: 700; color: var(--text-2); }
   @page { margin: 16mm; }
 }
 
+/* ===== v0.5.1：UI 打磨（溢出防护 / 侧栏省略 / 占位符对比度） ===== */
+/* 输入框占位符：提升对比度，避免顶栏搜索框等提示文字过暗 */
+input::placeholder, textarea::placeholder { color: var(--text-2); opacity: .88; }
+[data-theme="light"] input::placeholder, [data-theme="light"] textarea::placeholder { color: var(--text-2); opacity: .95; }
+
+/* 弹性文本子元素允许收缩：长值不再把容器撑破（内容超出文本框的根因之一） */
+.row, .col, .kv, .out-line, .bus-main, .result-box, .card, .aside-card, .calc, .cat-card, .tool-body, .stage-main, .stage-aside { min-width: 0; }
+
+/* 长值 / 长文本兜底换行，杜绝横向溢出 */
+.kv .v, .out-line .v, .bus-val, .ref-row .rv, .log-row,
+.result-box, .card, .aside-card, .calc, .cat-card { overflow-wrap: anywhere; word-break: break-word; }
+.out-line .v { word-break: break-all; }
+.bus-val { white-space: normal; }
+
+/* 表格：单元格允许断行，宽表在窄容器里不撑破卡片 */
+th, td { overflow-wrap: anywhere; word-break: break-word; }
+.data-table, table { max-width: 100%; }
+
+/* 侧栏导航 / 工具 chip：长名称省略号，避免换行导致行高不齐 */
+.nav-item { min-width: 0; }
+.nav-item > span:last-child, .nav-home > span:last-child {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tool-chip { max-width: 100%; }
+.tool-chip > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 计算器显示屏：超长结果允许换行，必要时滚动而非被裁切 */
+.calc-display .val, .calc-display .expr { overflow-wrap: anywhere; word-break: break-all; }
+
 /* ===== v0.3.0：键盘无障碍 / 减弱动效 / 设置面板 ===== */
 /* 全局 outline:none 曾让按钮与导航项在键盘 Tab 时完全没有可见焦点，这里补回。
    放在文件末尾以覆盖前面 input:focus 等同特异性规则。 */
@@ -597,7 +649,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 [data-theme="light"] input:focus-visible,
 [data-theme="light"] textarea:focus-visible,
 [data-theme="light"] select:focus-visible { outline-color: #1d4ed8; }
-button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent-soft), var(--shadow); }
+button[aria-pressed="true"]:not(.seg) { box-shadow: 0 0 0 2px var(--accent-soft), var(--shadow); }
 .warn-text { color: var(--warn); font-weight: 700; }
 [data-theme="light"] .warn-text { color: #92400e; }
 

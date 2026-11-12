@@ -30,6 +30,8 @@
     'base64-url': '🔗', passgen: '🔑',
     'unit-converter': '🔄', 'income-tax': '💴', mortgage: '🏠', bmi: '⚖️', geometry: '📐', 'random': '🎲',
     'hv-transformer': '🔧', 'hv-motor': '⚙️', 'hv-reactance': '🌊', 'hv-safety': '🛡️', 'hv-ampacity': '🔌', 'hv-cheatsheet': '📘',
+    'ct-pt': '🧲', 'cable-select': '🧵',
+    'power-quality': '📈', 'short-circuit': '🔥', 'bess': '🔋',
     'batch-calc': '📊', crontab: '⏰', settings: '⚙️'
   };
   const iconOf = (m) => m.icon || ICONS[m.id] || '🔧';
@@ -169,7 +171,7 @@
   function navButton(m, prefix) {
     return TB.util.el('button', {
       class: 'nav-item' + (!isHome() && currentId() === m.id ? ' active' : ''),
-      'aria-label': m.name,
+      'aria-label': m.name, title: m.name,
       onclick: () => { location.hash = '#/m/' + encodeURIComponent(m.id); }
     }, [
       TB.util.el('span', { class: 'ico', text: prefix || iconOf(m), 'aria-hidden': 'true' }),
@@ -216,7 +218,7 @@
     if (!list.length) return null;
     const chips = TB.util.el('div', { class: 'tool-chips' });
     list.forEach(m => chips.appendChild(TB.util.el('button', {
-      class: 'tool-chip', title: m.desc || '',
+      class: 'tool-chip', title: m.name + (m.desc ? ' — ' + m.desc : ''),
       onclick: () => { location.hash = '#/m/' + encodeURIComponent(m.id); }
     }, [
       TB.util.el('span', { class: 'ico', text: iconOf(m) }),
@@ -260,7 +262,7 @@
       const chips = TB.util.el('div', { class: 'tool-chips' });
       map[cat].forEach(m => {
         chips.appendChild(TB.util.el('button', {
-          class: 'tool-chip', title: m.desc || '',
+          class: 'tool-chip', title: m.name + (m.desc ? ' — ' + m.desc : ''),
           onclick: () => { location.hash = '#/m/' + encodeURIComponent(m.id); }
         }, [
           TB.util.el('span', { class: 'ico', text: iconOf(m) }),

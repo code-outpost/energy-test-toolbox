@@ -12,7 +12,7 @@
     <div class="brand">
       <span class="logo" aria-hidden="true">⚡</span>
       <span>能源测试工具箱</span>
-      <button id="appVersion" class="ver-badge" title="点击查看更新" aria-label="当前版本，点击检查更新">v0.4.1</button>
+      <button id="appVersion" class="ver-badge" title="点击查看更新" aria-label="当前版本，点击检查更新">v0.5.0</button>
     </div>
     <div class="top-actions">
       <input id="globalSearch" class="search" type="search" aria-label="搜索工具" placeholder="搜索工具（/ 或 Ctrl+K）..." />
@@ -47,6 +47,10 @@
   <script src="modules/calculator/pv-array.js"></script>
   <script src="modules/calculator/battery.js"></script>
   <script src="modules/calculator/elec-cost.js"></script>
+  <!-- 电力 / 新能源计算（新增：电能质量 / 短路 / 储能） -->
+  <script src="modules/calculator/power-quality.js"></script>
+  <script src="modules/calculator/short-circuit.js"></script>
+  <script src="modules/calculator/bess.js"></script>
   <!-- 通用计算 -->
   <script src="modules/calculator/datecalc.js"></script>
   <script src="modules/calculator/fraction.js"></script>
@@ -59,6 +63,9 @@
   <script src="modules/hv/hv-ampacity.js"></script>
   <script src="modules/hv/hv-cheatsheet.js"></script>
   <script src="modules/hv/hv-tables.js"></script>
+  <!-- 高压电工（新增：CT/PT 二次负荷、线缆选型反查） -->
+  <script src="modules/hv/ct-pt.js"></script>
+  <script src="modules/hv/cable-select.js"></script>
   <!-- 电力 / 能源计算器（旧） -->
   <script src="modules/calculator/ohm.js"></script>
   <script src="modules/calculator/threephase.js"></script>

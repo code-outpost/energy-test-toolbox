@@ -154,7 +154,7 @@
       probeAppInfo();
 
       // ---------- 外观 ----------
-      const themeRow = T.el('div', { class: 'row', id: 'st_theme_row' });
+      const themeRow = T.el('div', { class: 'seg-group', id: 'st_theme_row' });
       const THEMES = [
         { v: 'auto', label: '🖥 跟随系统' },
         { v: 'dark', label: '🌙 深色' },
@@ -164,7 +164,7 @@
         themeRow.innerHTML = '';
         const cur = typeof TB.getThemeMode === 'function' ? TB.getThemeMode() : 'auto';
         THEMES.forEach(t => themeRow.appendChild(T.el('button', {
-          class: 'btn sm ' + (cur === t.v ? 'primary' : 'ghost'),
+          class: 'seg' + (cur === t.v ? ' active' : ''),
           text: t.label, 'aria-pressed': cur === t.v ? 'true' : 'false',
           onclick: () => {
             if (typeof TB.setTheme === 'function') TB.setTheme(t.v);

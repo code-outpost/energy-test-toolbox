@@ -42,6 +42,30 @@ caseOf('cable-drop', '6.33', '电缆压降 ΔU%');
 caseOf('pv-array', '110.00', '光伏阵列总功率 kWp');
 caseOf('battery', '58 Ah', '储能电池容量 Ah');
 caseOf('elec-cost', '440.00', '阶梯电费 ¥');
+
+// ---- v0.5.0 新增：电能质量 / 短路 / 储能 / CT·PT / 线缆选型 ----
+caseOf('power-quality', '11.18', '谐波 THD%');
+caseOf('power-quality', '61.97', 'cosφ→Q kvar');
+caseOf('power-quality', '117.65', 'cosφ→S kVA');
+caseOf('short-circuit', '11.547', '系统法三相短路电流 kA');
+caseOf('short-circuit', '10.000', '两相短路电流 kA');
+caseOf('short-circuit', '29.394', '冲击电流 kA');
+caseOf('short-circuit', '合格', '分断校核合格');
+caseOf('short-circuit', '19.245', '变压器低压侧短路电流 kA');
+caseOf('bess', '1.60', 'BESS 储能时长 h');
+caseOf('bess', '7.20', 'BESS 净上网能量 MWh');
+caseOf('bess', '6750', 'BESS 预估循环次数');
+caseOf('ct-pt', '120', 'CT 变比');
+caseOf('ct-pt', '6.39', 'CT 实际二次负荷 VA');
+caseOf('ct-pt', '100', 'PT 变比');
+caseOf('cable-select', '50', '线缆选型截面 mm²');
+caseOf('cable-select', '152', '所选截面额定 A');
+{ // pv-array 增强：容配比 + 低温Voc 校验
+  const r = render('pv-array');
+  check('光伏容配比 110/110 = 1.00', r.text, '1.00');
+  check('光伏组串低温开路电压 1090.5V', r.text, '1090.5');
+}
+
 {
   const r = render('power-factor');
   setInp(r.body, 'pf_p', 200); setInp(r.body, 'pf_c1', 0.8); setInp(r.body, 'pf_c2', 0.95);
